@@ -76,10 +76,10 @@ export interface CapabilitySpec {
   /**
    * A dedicated renderer view instead of the generic launch form: "git" draws
    * the per-op action list plus the live per-submodule ignore=dirty toggles,
-   * "settings" the Config/Doctor tabs, "packages" the Export/Import library, and
-   * "mcp" the project-first, status-aware MCP page. Omitted → form.
+   * "settings" the Config/Doctor tabs, "packages" the Export/Import library,
+   * and "init" the initializer. Omitted → form.
    */
-  page?: "git" | "settings" | "packages" | "mcp" | "init";
+  page?: "git" | "settings" | "packages" | "init";
 }
 
 /**
@@ -237,29 +237,6 @@ export interface PackagesLibraryModel {
   packages: PackageLibraryRow[];
 }
 
-// ---------------------------------------------------------------------------
-// MCP page (project-first, status-aware actions)
-// ---------------------------------------------------------------------------
-
-/**
- * Per-target MCP state (payload of `mcp:project-status`): upstream plugin state
- * plus project-local agent and extension catalogs. Strictly offline so the page
- * can gate its actions as soon as a project is picked.
- */
-export interface McpProjectStatus {
-  installed: boolean;
-  version: string | null;
-  installedAddons: string[];
-  agent: string | null;
-  enableAllTools: boolean;
-  enableAllPrompts: boolean;
-  enableAllResources: boolean;
-  agentOptions: { value: string; label: string }[];
-  extensionOptions: { value: string; label: string }[];
-  defaultExtensions: string[];
-  configPath: string | null;
-}
-
 /**
  * Build-time tab selection. `SCVN_TABS` (comma-separated capability ids) is
  * injected as the `__SCVN_TABS__` constant by both bundlers (vite + tsup); an
@@ -307,13 +284,6 @@ export const ALL_CAPABILITIES: CapabilitySpec[] = [
     description:
       "Install .gitignore, .git/info/exclude, and/or Git LFS, and toggle ignore=dirty per submodule.",
     page: "git",
-    launch: [],
-  },
-  {
-    id: "mcp",
-    label: "MCP",
-    description: "Vendor Unity MCP packages and write agent config into a project.",
-    page: "mcp",
     launch: [],
   },
   {

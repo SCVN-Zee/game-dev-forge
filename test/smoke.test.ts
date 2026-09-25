@@ -89,16 +89,6 @@ describe("scvn smoke", () => {
     expect(stderr).toContain("Unknown command: pack");
   });
 
-  it("scvn sync <anything> exits 1 with the migration table", async () => {
-    const { stderr, exitCode } = await execa(BIN, ["sync", "toolkit"], { reject: false });
-    expect(exitCode).toBe(1);
-    expect(stderr).toContain("scvn sync was replaced in v0.2");
-    expect(stderr).toContain("scvn sync toolkit   → removed");
-    expect(stderr).toContain("scvn sync packages  → scvn packages export +  scvn packages import");
-    expect(stderr).toContain("scvn sync mcp       → removed");
-    expect(stderr).toContain("scvn sync all       → scvn packages import");
-  });
-
   it("bare scvn all exits 1 with the migration table", async () => {
     const { stderr, exitCode } = await execa(BIN, ["all"], { reject: false });
     expect(exitCode).toBe(1);

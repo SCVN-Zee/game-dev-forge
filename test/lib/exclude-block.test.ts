@@ -3,7 +3,7 @@
  * `.git/info/exclude` writer, against real files in a temp dir.
  *
  * The bug this guards: a wholesale file→file copy destroys any foreign block in
- * `info/exclude` (hand-written lines, the MCP fence). Every case here asserts
+ * `info/exclude` (hand-written lines, other tools’ fences). Every case here asserts
  * foreign bytes survive.
  */
 
@@ -13,16 +13,14 @@ import path from "node:path";
 import { tmpDir } from "../helpers/tmp-dir.js";
 import {
   applyExcludeBlock,
-  stripExcludeBlock,
   SCVN_FENCE,
-  SCVN_MCP_FENCE,
 } from "../../src/lib/exclude-block.js";
 
 const BODY = "vFolders**\ndocs\n";
 const INNER = BODY.trimEnd();
 
-const MCP_BLOCK =
-  "# >>> scvn mcp >>>\n/Assets/UnityMCP\n# <<< scvn mcp <<<\n";
+const FOREIGN_FENCE = { begin: "# >>> foreign >>>", end: "# <<< foreign <<<" };
+const FOREIGN_BLOCK = "# >>> foreign >>>\n/Assets/LocalPlugin\n# <<< foreign <<<\n";
 
 /** Write an existing `info/exclude` with the given bytes. */
 async function seed(dir: string, content: string): Promise<string> {
@@ -87,15 +85,15 @@ describe("applyExcludeBlock", () => {
     expect(text).not.toContain("OLD");
   });
 
-  it("leaves a foreign mcp fence byte-identical", async () => {
+  it("leaves a foreign fence byte-identical", async () => {
     const dir = await tmpDir("scvn-excl-");
-    const file = await seed(dir, MCP_BLOCK);
+    const file = await seed(dir, FOREIGN_BLOCK);
 
     await applyExcludeBlock(file, INNER, SCVN_FENCE);
     const text = await readFile(file, "utf8");
 
-    expect(text).toContain(MCP_BLOCK);
-    expect(count(text, "# >>> scvn mcp >>>")).toBe(1);
+    expect(text).toContain(FOREIGN_BLOCK);
+    expect(count(text, "# >>> foreign >>>")).toBe(1);
     expect(count(text, "# >>> scvn >>>")).toBe(1);
   });
 
@@ -116,11 +114,11 @@ describe("applyExcludeBlock", () => {
     const file = path.join(dir, "exclude");
 
     await applyExcludeBlock(file, INNER, SCVN_FENCE);
-    await applyExcludeBlock(file, "/Assets/UnityMCP", SCVN_MCP_FENCE);
+    await applyExcludeBlock(file, "/Assets/LocalPlugin", FOREIGN_FENCE);
     const text = await readFile(file, "utf8");
 
     expect(text).toContain(`# >>> scvn >>>\n${INNER}\n# <<< scvn <<<`);
-    expect(text).toContain("# >>> scvn mcp >>>\n/Assets/UnityMCP\n# <<< scvn mcp <<<");
+    expect(text).toContain(FOREIGN_BLOCK.trimEnd());
   });
 
   it("throws on an orphan fence rather than silently swallowing content", async () => {
@@ -137,41 +135,5 @@ describe("applyExcludeBlock", () => {
     await applyExcludeBlock(file, INNER, SCVN_FENCE);
 
     expect(await readdir(dir)).toEqual(["exclude"]);
-  });
-});
-
-describe("stripExcludeBlock", () => {
-  it("removes only the scvn fence, sparing foreign lines and the mcp fence", async () => {
-    const dir = await tmpDir("scvn-excl-");
-    const file = await seed(dir, `hand-written\n${MCP_BLOCK}`);
-    await applyExcludeBlock(file, INNER, SCVN_FENCE);
-
-    const result = await stripExcludeBlock(file, SCVN_FENCE);
-    const text = await readFile(file, "utf8");
-
-    expect(result.written).toBe(true);
-    expect(text).toContain("hand-written\n");
-    expect(text).toContain(MCP_BLOCK);
-    expect(text).not.toContain("# >>> scvn >>>");
-  });
-
-  it("is a no-op when the fence is absent", async () => {
-    const dir = await tmpDir("scvn-excl-");
-    const file = await seed(dir, "hand-written\n");
-
-    const result = await stripExcludeBlock(file, SCVN_FENCE);
-
-    expect(result.written).toBe(false);
-    expect(await readFile(file, "utf8")).toBe("hand-written\n");
-  });
-
-  it("never creates a missing file", async () => {
-    const dir = await tmpDir("scvn-excl-");
-    const file = path.join(dir, "info", "exclude");
-
-    const result = await stripExcludeBlock(file, SCVN_FENCE);
-
-    expect(result.written).toBe(false);
-    await expect(readFile(file, "utf8")).rejects.toThrow();
   });
 });

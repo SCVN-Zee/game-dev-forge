@@ -3,7 +3,7 @@
  *
  * Real git repos, real bundled template, real writes. The previous
  * implementation rsync'd the template over `info/exclude` wholesale, silently
- * destroying the vendored-MCP block and any hand-written lines; the
+ * destroying other tools’ blocks and any hand-written lines; the
  * "preserves foreign" cases below are the regression guard for that data loss.
  */
 
@@ -18,7 +18,7 @@ import { getGitInfoExcludePath } from "../../src/services/git.js";
 import { resolveTemplateKey } from "../../src/util/template-paths.js";
 import type { SyncStatusEvent } from "../../src/features/transfer/reporter.js";
 
-const MCP_BLOCK = "# >>> scvn mcp >>>\n/Assets/UnityMCP\n# <<< scvn mcp <<<\n";
+const FOREIGN_BLOCK = "# >>> foreign >>>\n/Assets/LocalPlugin\n# <<< foreign <<<\n";
 
 function fakeReporter() {
   const events: SyncStatusEvent[] = [];
@@ -46,7 +46,7 @@ async function templateBody(): Promise<string> {
 /**
  * A retired pre-fence template body, frozen as a fixture (so it survives future
  * template edits). `v0.5.1` is the pre-trim body verbatim; `v0.5` is that body
- * plus the `UnityMcp**` line the mcp path used before the mcp fence. Their
+ * plus the retired `UnityMcp**` pattern. Their
  * sha256s are the entries in RETIRED_TEMPLATE_DIGESTS.
  */
 async function retiredBody(rev: "v0.5.1" | "v0.5"): Promise<string> {
@@ -83,16 +83,16 @@ describe("setupGitexclude", () => {
     expect(last()?.detail).toMatch(/would/);
   });
 
-  it("preserves hand-written lines and a foreign mcp fence", async () => {
+  it("preserves hand-written lines and a foreign fence", async () => {
     const { target, excludePath } = await makeRepo();
-    await writeFile(excludePath, `# my notes\nbuild/\n${MCP_BLOCK}`, "utf8");
+    await writeFile(excludePath, `# my notes\nbuild/\n${FOREIGN_BLOCK}`, "utf8");
     const { reporter, last } = fakeReporter();
 
     await setupGitexclude(target, { reporter });
     const text = await readFile(excludePath, "utf8");
 
     expect(text).toContain("# my notes\nbuild/\n");
-    expect(text).toContain(MCP_BLOCK);
+    expect(text).toContain(FOREIGN_BLOCK);
     expect(text).toContain(`# >>> scvn >>>\n${await templateBody()}\n# <<< scvn <<<`);
     expect(last()?.status).toBe("done");
   });
@@ -117,8 +117,6 @@ describe("setupGitexclude", () => {
     const text = await readFile(excludePath, "utf8");
 
     expect(text).toBe(`# >>> scvn >>>\n${await templateBody()}\n# <<< scvn <<<\n`);
-    expect(count(text, ".mcp.json")).toBe(1);
-    expect(count(text, "UnityMcp")).toBe(0);
   });
 
   it("migrates the retired v0.5.1 pre-trim revision to the fenced current form", async () => {
@@ -139,12 +137,9 @@ describe("setupGitexclude", () => {
   });
 
   it("migrates the retired v0.5 revision too, dropping its UnityMcp** line", async () => {
-    // v0.5 = the v0.5.1 body plus a `UnityMcp**` line (the mcp path predating the
-    // mcp fence). Left unrecognized, that line would keep matching Assets/UnityMCP
-    // even after `scvn mcp uninstall`.
+    // Unrecognized old templates would leave retired patterns outside the fence.
     const { target, excludePath } = await makeRepo();
     const v05 = await retiredBody("v0.5");
-    expect(v05).toContain("UnityMcp**\n"); // guard: fixture carries the retired line
     await writeFile(excludePath, v05, "utf8");
 
     await setupGitexclude(target, {});

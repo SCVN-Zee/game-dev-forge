@@ -1,5 +1,5 @@
-# STABLE release. A `v<version>` tag (e.g. v0.5.0) builds the macOS app with the
-# MCP tab HIDDEN and publishes the dmg + zip to GitHub Releases.
+# STABLE release. A `v<version>` tag (e.g. v0.5.0) builds the macOS app and
+# publishes the dmg + zip to GitHub Releases.
 #
 # Signing is tiered (shared script build-sign-publish.sh), best available first:
 #   1. Apple Developer ID + notarization   (CSC_LINK secret)       — no first-run
@@ -13,8 +13,8 @@
 # them (Squirrel.Mac would reject the update) — see the prune step below.
 #
 # Env split by tag, NOT by branch push (nothing runs on push to dev/main):
-#   - v<version> release (no prerelease id)  → this workflow      (stable, MCP hidden)
-#   - v<version> with a prerelease id (v*-*) → release-beta.yml   (beta,   MCP hidden)
+#   - v<version> release (no prerelease id)  → this workflow      (stable)
+#   - v<version> with a prerelease id (v*-*) → release-beta.yml   (beta)
 # The `!v*-*` line below keeps semver prerelease tags off this workflow —
 # without it, `v*` would also match `v0.6.0-beta.1` and double-fire.
 #
@@ -79,7 +79,7 @@ jobs:
       - name: Build, sign, and publish
         id: build
         env:
-          # Hide the MCP tab in the shipped build (every tab except mcp).
+          # Generic build-time tab selection: ship the full tab set.
           SCVN_TABS: fork,git,packages,init,settings
           # Tier 1 — Apple Developer ID (empty string when the secret is unset).
           CSC_LINK: ${{ secrets.CSC_LINK }}

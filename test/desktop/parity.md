@@ -16,7 +16,6 @@ are identical by construction; this checklist is the guard that proves it.
 | `fork` merge attrs | `test/features/setup-merge-attributes.test.ts` | The Fork form's optional "write Unity merge `.gitattributes`" step reuses the CLI writer `writeGitAttributes()` via `setupMergeAttributes` (`src/features/setup/`); the host forks no write logic — it only resolves the picked project and toggle. |
 | `setup` | `test/commands/shared/select-setup-target.test.ts` | The form's discovery step returns the same project list the CLI picker uses. |
 | routing | `test/desktop/host-dispatch.test.ts` → "registry exposes form prepare/execute routes" | Every form capability has a `prepare` + execute route; guided ones do not. |
-| `mcp` (lifecycle) | `test/features/mcp-upstream.test.ts`, `test/commands/mcp.test.ts` | The host forwards the selected agent, extensions, and MCP capability flags to the shared lifecycle; package ownership stays in the existing install/update/reconfigure handlers, then the cached `unity-mcp-cli` configures the project and relocates only the generated agent entry to the Git root. |
 
 The dispatcher/cancel tests in the same file prove a cancelled prompt unwinds as
 `PromptCancelled` and the host survives.
@@ -48,5 +47,5 @@ echo $?   # 0
 ```
 
 `SCVN_DESKTOP_SELFTEST=<command>` runs any registered command (`ping`,
-`doctor`, `config:prepare`, `mcp:project-status`) in the real utility process and
+`doctor`, `config:prepare`) in the real utility process and
 exits 0/1 on its result — no window interaction required.

@@ -176,32 +176,3 @@ describe("ensureProjectsRootConfigured", () => {
     expect(runConfig).toHaveBeenCalledOnce();
   });
 });
-
-describe("needsProjectsRoot — mcp", () => {
-  it("status always needs the root — it enumerates every project", () => {
-    expect(needsProjectsRoot(inv({ namespace: "mcp", subcommands: ["status"] }))).toBe(true);
-  });
-
-  it("status needs the root even under -y (there is no explicit path to pass instead)", () => {
-    expect(
-      needsProjectsRoot(inv({ namespace: "mcp", subcommands: ["status"], autoYes: true })),
-    ).toBe(true);
-  });
-
-  it("the mutating verbs need the root only when they would reach the picker", () => {
-    for (const verb of ["install", "uninstall", "update"]) {
-      expect(needsProjectsRoot(inv({ namespace: "mcp", subcommands: [verb] }))).toBe(true);
-      expect(
-        needsProjectsRoot(inv({ namespace: "mcp", subcommands: [verb], hasTarget: true })),
-      ).toBe(false);
-    }
-  });
-
-  it("bare `scvn mcp` does not need the root — dispatch prints the usage hint", () => {
-    expect(needsProjectsRoot(inv({ namespace: "mcp", subcommands: [] }))).toBe(false);
-  });
-
-  it("an unknown mcp verb does not need the root — dispatch reports the usage error", () => {
-    expect(needsProjectsRoot(inv({ namespace: "mcp", subcommands: ["instal"] }))).toBe(false);
-  });
-});

@@ -5,7 +5,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { replaceMarkerBlock, stripMarkerBlock } from "../../src/lib/markers.js";
+import { replaceMarkerBlock } from "../../src/lib/markers.js";
 
 describe("replaceMarkerBlock", () => {
   it("appends when absent (empty)", () => {
@@ -89,50 +89,5 @@ describe("replaceMarkerBlock — custom marker pair (coexistence)", () => {
     const lfsReplaced = replaceMarkerBlock(text, "LFS2", LFS);
     expect(lfsReplaced).toContain("# BEGIN scvn-lfs\nLFS2\n# END scvn-lfs");
     expect(lfsReplaced).toContain("# BEGIN fork-unity-setup\nFORK\n# END fork-unity-setup");
-  });
-});
-
-describe("stripMarkerBlock", () => {
-  const SCVN = { begin: "# >>> scvn >>>", end: "# <<< scvn <<<" };
-  const MCP = { begin: "# >>> scvn mcp >>>", end: "# <<< scvn mcp <<<" };
-
-  it("removes a balanced block and keeps the surrounding text", () => {
-    const text = "pre\n# >>> scvn >>>\nbody\n# <<< scvn <<<\npost\n";
-    expect(stripMarkerBlock(text, SCVN)).toBe("pre\npost\n");
-  });
-
-  it("is a no-op when the pair is absent", () => {
-    const text = "just user lines\nbuild/\n";
-    expect(stripMarkerBlock(text, SCVN)).toBe(text);
-  });
-
-  it("leaves a different marker pair untouched", () => {
-    const text =
-      "# >>> scvn mcp >>>\n/Assets/UnityMCP\n# <<< scvn mcp <<<\n" +
-      "# >>> scvn >>>\nbody\n# <<< scvn <<<\n";
-    const out = stripMarkerBlock(text, SCVN);
-    expect(out).toBe("# >>> scvn mcp >>>\n/Assets/UnityMCP\n# <<< scvn mcp <<<\n");
-    expect(stripMarkerBlock(out, MCP)).toBe("");
-  });
-
-  it("is idempotent", () => {
-    const text = "pre\n# >>> scvn >>>\nbody\n# <<< scvn <<<\n";
-    const once = stripMarkerBlock(text, SCVN);
-    expect(stripMarkerBlock(once, SCVN)).toBe(once);
-  });
-
-  it("removes every balanced block rather than throwing (forgiving vs replace)", () => {
-    const text = "# >>> scvn >>>\nA\n# <<< scvn <<<\nkeep\n# >>> scvn >>>\nB\n# <<< scvn <<<\n";
-    expect(stripMarkerBlock(text, SCVN)).toBe("keep\n");
-  });
-
-  it("leaves an orphan marker in place (nothing balanced to remove)", () => {
-    const text = "pre\n# >>> scvn >>>\norphan\n";
-    expect(stripMarkerBlock(text, SCVN)).toBe(text);
-  });
-
-  it("defaults to the fork marker pair", () => {
-    const text = replaceMarkerBlock("pre\n", "FORK");
-    expect(stripMarkerBlock(text)).toBe("pre\n\n");
   });
 });

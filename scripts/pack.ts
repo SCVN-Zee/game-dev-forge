@@ -26,7 +26,6 @@ import { shortenPath } from "../src/util/paths.js";
 import { readPackagesStoreMeta } from "../src/features/store/index.js";
 import { resolveBundleSourcePaths, bundleArchivePath } from "../src/features/pack/bundle-paths.js";
 import { assembleBundle } from "../src/features/pack/assemble-bundle.js";
-import { listVerDirs } from "../src/features/mcp/mcp-cache-paths.js";
 import { createZip } from "../src/services/zip.js";
 import {
   fetchNodeBinary,
@@ -111,18 +110,6 @@ export async function runPackBundle(opts: PackBundleOpts = {}): Promise<number> 
     }
   }
 
-  // The MCP cache is optional — a bundle without one still ships the CLI, it just
-  // cannot vendor Unity-MCP offline. Warn, never fail (mirrors the empty store).
-  const mcpVersions = await listVerDirs(paths.mcpCacheDir);
-  const mcpBytes = await duSize(paths.mcpCacheDir);
-  const mcpLine =
-    mcpVersions[0] === undefined
-      ? "mcp:     (empty — bundle cannot vendor Unity-MCP offline)"
-      : `mcp:     V${mcpVersions[0]}  (${formatBytes(mcpBytes)} cached, newest only ships)`;
-  if (mcpVersions[0] === undefined) {
-    console.warn("pack: MCP cache is empty — run `scvn mcp install` to stage one first");
-  }
-
   const nodeLine = noNode
     ? "node:    (skipped — --no-node)"
     : `node:    v${PINNED_NODE_VERSION} (${nodeArch}, ${formatBytes((await stat(nodeBinPath as string)).size)})`;
@@ -131,7 +118,6 @@ export async function runPackBundle(opts: PackBundleOpts = {}): Promise<number> 
       `Building scvn bundle v${version}`,
       nodeLine,
       `store:   ${shortenPath(paths.userStoreDir)}  (${formatBytes(storeBytes)})`,
-      mcpLine,
       `archive: ${shortenPath(archive)}`,
     ].join("\n"),
   );
@@ -141,7 +127,6 @@ export async function runPackBundle(opts: PackBundleOpts = {}): Promise<number> 
     await assembleBundle({
       installRoot:     paths.installRoot,
       userStoreParent: paths.userStoreParent,
-      mcpCacheDir:     paths.mcpCacheDir,
       stagingDir:      staging,
       version,
       nodeBinPath,

@@ -20,7 +20,6 @@ import { getVersion } from "./util/app-info.js";
 import { HELP_TEXT } from "./commands/help-text.js";
 import { runDoctor } from "./commands/doctor.js";
 import { runPackages } from "./commands/packages.js";
-import { runMcp } from "./commands/mcp.js";
 import { printSyncMigrationHint } from "./commands/sync-migration-hint.js";
 import { printSetupMigrationHint } from "./commands/setup-migration-hint.js";
 import { printGitGroupingHint } from "./commands/git-migration-hint.js";
@@ -44,13 +43,11 @@ installFatalHandlers();
 // ---------------------------------------------------------------------------
 // Known tokens
 //
-// Verbs are per-noun: `packages` and `mcp` have disjoint vocabularies, and one
-// shared set would let `scvn mcp export` through to a handler that cannot serve it.
+// Validate noun verbs before dispatching to their handler.
 // ---------------------------------------------------------------------------
 
 const NOUN_VERBS: Record<string, readonly string[]> = {
   packages: ["add", "remove", "import", "export"],
-  mcp:      ["status", "install", "uninstall", "update", "reconfigure"],
 };
 
 // ---------------------------------------------------------------------------
@@ -146,24 +143,6 @@ try {
       store:   storeOverride,
       dryRun:  args.dryRun,
       autoYes: args.autoYes,
-    });
-
-  } else if (effectiveNamespace === "mcp") {
-    // Bare `scvn mcp` prints the usage hint and exits 1 (the `scvn git` precedent),
-    // so the verb is passed through unvalidated — runMcp owns that error.
-    await runMcp({
-      verb:       firstSub || undefined,
-      version:    args.subcommands[1],   // `install <coreVer>` / `update <coreVer>`
-      target:     args.target,
-      addons:     args.addons,
-      agent:      args.agent,
-      enableAllTools: args.enableAllTools,
-      enableAllPrompts: args.enableAllPrompts,
-      enableAllResources: args.enableAllResources,
-      force:      args.force,
-      purgeNuget: args.purgeNuget,
-      dryRun:     args.dryRun,
-      autoYes:    args.autoYes,
     });
 
   } else if (effectiveNamespace === "sync") {

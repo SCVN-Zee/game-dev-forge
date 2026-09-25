@@ -9,7 +9,6 @@
 export const SYNC_MIGRATION_HINT = `scvn sync was replaced in v0.2:
   scvn sync toolkit   → removed
   scvn sync packages  → scvn packages export +  scvn packages import
-  scvn sync mcp       → removed
   scvn sync all       → scvn packages import`;
 
 /** Print the migration table to stderr. Caller is responsible for exit code. */

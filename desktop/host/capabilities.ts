@@ -15,7 +15,6 @@ import { runConfigExecute } from "../../src/commands/config.js";
 import { runDoctor } from "../../src/commands/doctor.js";
 import { forkPreflight, forkExecute, type ForkPreflight } from "../../src/commands/fork.js";
 import { runGitCommand } from "../../src/commands/git.js";
-import { runMcp } from "../../src/commands/mcp.js";
 import { runPackages } from "../../src/commands/packages.js";
 import { ignoreDirtyList, ignoreDirtySet } from "./ignore-dirty.js";
 import { discoverSetupTargetsRich } from "../../src/commands/shared/select-setup-target.js";
@@ -34,7 +33,6 @@ import type {
   LaunchField,
   PackagesSourceResult,
   PackagesLibraryModel,
-  McpProjectStatus,
   ConfigStatus,
   DoctorReport,
 } from "../shared/commands.js";
@@ -44,8 +42,6 @@ import { removePackages, resolveAddFolder } from "../../src/features/packages/in
 import { initializeProject, parseInitLayout } from "../../src/features/init/index.js";
 import { readFile, rename, rm, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
-import { DEFAULT_MCP_EXTENSIONS, MCP_EXTENSIONS, PROJECT_LOCAL_AGENTS } from "../../src/features/mcp/upstream.js";
-import { readUpstreamProjectState } from "../../src/features/mcp/upstream-status.js";
 // ---------------------------------------------------------------------------
 // Launch-arg parsing (renderer sends a Record over IPC, typed `unknown` here)
 // ---------------------------------------------------------------------------
@@ -219,52 +215,6 @@ export const capabilities: CommandRegistry = {
   "templates:create": templatesCreate,
   "templates:select": templatesSelect,
   "templates:delete": templatesDelete,
-
-  // --- mcp: local package and config lifecycle ---
-  async "mcp:project-status"(_session: HostSession, args: unknown): Promise<unknown> {
-    const target = str(asRecord(args), "target");
-    const state = target
-      ? await readUpstreamProjectState(target)
-      : { installed: false, version: null, extensions: [], agent: null, enableAllTools: true, enableAllPrompts: true, enableAllResources: true };
-    return {
-      installed: state.installed,
-      version: state.version,
-      installedAddons: state.extensions,
-      agent: state.agent,
-      enableAllTools: state.enableAllTools,
-      enableAllPrompts: state.enableAllPrompts,
-      enableAllResources: state.enableAllResources,
-      agentOptions: PROJECT_LOCAL_AGENTS.map(({ value, label }) => ({ value, label })),
-      extensionOptions: MCP_EXTENSIONS.map(({ value, label }) => ({ value, label })),
-      defaultExtensions: [...DEFAULT_MCP_EXTENSIONS],
-      configPath: null,
-    } satisfies McpProjectStatus;
-  },
-
-
-  async mcp(session: HostSession, args: unknown): Promise<unknown> {
-    const record = asRecord(args);
-    const extensions = strArray(record, "extensions");
-    await runMcp(
-      {
-        verb: str(record, "verb"),
-        version: str(record, "version"),
-        target: str(record, "target"),
-        addons: record.extensions === undefined ? undefined : extensions.join(","),
-        agent: str(record, "agent"),
-        enableAllTools: bool(record, "enableAllTools"),
-        enableAllPrompts: bool(record, "enableAllPrompts"),
-        enableAllResources: bool(record, "enableAllResources"),
-        force: bool(record, "force"),
-        dryRun: false,
-        autoYes: false,
-        throwOnFailure: true,
-      },
-      createGuiPrompt(session),
-      createGuiOutput(session),
-    );
-    return null;
-  },
 
   async packages(session: HostSession, args: unknown): Promise<unknown> {
     const record   = asRecord(args);

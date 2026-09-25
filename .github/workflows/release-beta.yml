@@ -1,6 +1,6 @@
 # BETA release. A semver PRERELEASE tag `v<version>` where <version> carries a
-# prerelease id (e.g. v0.6.0-beta.1) builds the macOS app with the MCP tab
-# HIDDEN (same tab set as stable) and publishes it to GitHub Releases as a
+# prerelease id (e.g. v0.6.0-beta.1) builds the macOS app (same tab set as
+# stable) and publishes it to GitHub Releases as a
 # PRE-RELEASE for internal testers.
 #
 # Why semver prerelease and not a `b` suffix: electron-builder derives the
@@ -10,8 +10,8 @@
 # `v0.5.0` draft; `0.6.0-beta.1` derives the matching `v0.6.0-beta.1` tag.
 #
 # Env split by tag, NOT by branch push (nothing runs on push to dev/main):
-#   - v<version> with a prerelease id (v*-*) → this workflow    (beta,   MCP hidden)
-#   - v<version> release (no prerelease id)  → release-stable.yml (stable, MCP hidden)
+#   - v<version> with a prerelease id (v*-*) → this workflow    (beta)
+#   - v<version> release (no prerelease id)  → release-stable.yml (stable)
 #
 # Signing is tiered (shared with the stable workflow): Apple Developer ID when
 # its secrets are set, else the stable self-signed cert (SCVN_SELFSIGN_P12) which
@@ -37,7 +37,7 @@ jobs:
   beta:
     runs-on: macos-14 # electron-builder --mac must run on macOS
     env:
-      # Ship the same tab set as stable — the MCP tab is hidden here too.
+      # Ship the same tab set as stable (generic build-time tab selection).
       SCVN_TABS: fork,git,packages,init,settings
     steps:
       - uses: actions/checkout@v4

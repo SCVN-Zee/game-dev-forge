@@ -22,10 +22,6 @@ import { detectBeyondCompare } from "../detectors/detect-beyond-compare.js";
 import { detectUnityVersions } from "../detectors/detect-unity-versions.js";
 import { detectForkRunning } from "../detectors/detect-fork-running.js";
 import { checkMergespecfile } from "../lib/check-mergespecfile.js";
-import {
-  listStagedVersions,
-  resolveCliForCore,
-} from "../features/mcp/resolve-mcp-cache.js";
 import { formatBytes } from "../util/format-bytes.js";
 import {
   readPackagesStoreMeta,
@@ -186,35 +182,6 @@ async function checkStore(ctx?: CheckContext): Promise<CheckResult> {
   return { severity: "pass", detail: "nothing staged (scvn packages add)" };
 }
 
-/**
- * Informational MCP-cache status — never fails the run. An empty cache is a
- * normal state on a fresh machine (nothing vendored yet), so the worst it
- * reports is a warn.
- */
-async function checkMcpCache(): Promise<CheckResult> {
-  const staged = await listStagedVersions().catch(() => []);
-
-  if (staged.length === 0) {
-    return { severity: "warn", detail: "nothing staged (scvn mcp install)" };
-  }
-
-  const newest = staged[0]!;
-  const tag = newest.source === "bundled" ? " (bundled)" : "";
-  const versions = staged.map((entry) => `V${entry.version}`).join(", ");
-
-  // Without the CLI closure the cache can vendor source but not write .mcp.json —
-  // worth flagging, because on an offline machine there is no way to fetch it.
-  const cli = await resolveCliForCore(newest.version).catch(() => null);
-  if (cli === null) {
-    return {
-      severity: "warn",
-      detail: `${versions}${tag} — no unity-mcp-cli cached (.mcp.json cannot be written offline)`,
-    };
-  }
-
-  return { severity: "pass", detail: `${versions}${tag} + unity-mcp-cli@${cli.version}` };
-}
-
 async function checkBeyondCompare(): Promise<CheckResult> {
   if (process.platform !== "darwin") return macOnlySkipped();
   const result = await detectBeyondCompare();
@@ -267,7 +234,6 @@ export const CHECKS: Check[] = [
   { id: "node",      label: "Node ≥ 20",              run: checkNode },
   { id: "bundled-node", label: "Bundled Node",        macOnly: true, run: checkBundledNode },
   { id: "store",     label: "Store (~/.scvn/store)",  run: checkStore },
-  { id: "mcp-cache", label: "MCP cache (~/.scvn/mcp)", run: checkMcpCache },
   { id: "beyond-compare", label: "Beyond Compare",         macOnly: true, run: checkBeyondCompare },
   { id: "unity",     label: "Unity Hub editors",      macOnly: true, run: checkUnity },
   { id: "fork",      label: "Fork not running",       macOnly: true, run: checkFork },

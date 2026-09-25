@@ -8,26 +8,19 @@ export interface ParsedArgs {
   ignore: boolean;
   exclude: boolean;
   lfs: boolean;
-  force: boolean;
-  purgeNuget: boolean;
   namespace: string | null;
   subcommands: string[];
   from?: string;
   to: string[];
   target?: string;
   store?: string;
-  addons?: string;
-  agent?: string;
-  enableAllTools: boolean;
-  enableAllPrompts: boolean;
-  enableAllResources: boolean;
   name?: string;
   layout?: string;
   warnings: string[];
 }
 
-const KNOWN_NAMESPACES = new Set(["packages", "mcp", "setup", "config", "doctor", "sync"]);
-const VALUE_FLAGS = new Set(["--from", "--to", "--target", "--store", "--addons", "--agent", "--name", "--layout"]);
+const KNOWN_NAMESPACES = new Set(["packages", "setup", "config", "doctor", "sync"]);
+const VALUE_FLAGS = new Set(["--from", "--to", "--target", "--store", "--name", "--layout"]);
 
 export function parseArgv(argv: string[]): ParsedArgs {
   let help = false;
@@ -37,16 +30,9 @@ export function parseArgv(argv: string[]): ParsedArgs {
   let ignore = false;
   let exclude = false;
   let lfs = false;
-  let force = false;
-  let purgeNuget = false;
-  let agent: string | undefined;
-  let enableAllTools = true;
-  let enableAllPrompts = true;
-  let enableAllResources = true;
   let from: string | undefined;
   let target: string | undefined;
   let store: string | undefined;
-  let addons: string | undefined;
   let name: string | undefined;
   let layout: string | undefined;
   const to: string[] = [];
@@ -58,8 +44,6 @@ export function parseArgv(argv: string[]): ParsedArgs {
     else if (flag === "--to") to.push(value);
     else if (flag === "--target") target = value;
     else if (flag === "--store") store = value;
-    else if (flag === "--addons") addons = value;
-    else if (flag === "--agent") agent = value;
     else if (flag === "--name") name = value;
     else if (flag === "--layout") layout = value;
   }
@@ -74,14 +58,6 @@ export function parseArgv(argv: string[]): ParsedArgs {
       case "--ignore": ignore = true; continue;
       case "--exclude": exclude = true; continue;
       case "--lfs": lfs = true; continue;
-      case "--force": force = true; continue;
-      case "--purge-nuget": purgeNuget = true; continue;
-      case "--enable-all-tools": enableAllTools = true; continue;
-      case "--enable-all-prompts": enableAllPrompts = true; continue;
-      case "--enable-all-resources": enableAllResources = true; continue;
-      case "--no-tools": case "--disable-all-tools": enableAllTools = false; continue;
-      case "--no-prompts": case "--disable-all-prompts": enableAllPrompts = false; continue;
-      case "--no-resources": case "--disable-all-resources": enableAllResources = false; continue;
     }
 
     if (VALUE_FLAGS.has(arg)) {
@@ -109,8 +85,7 @@ export function parseArgv(argv: string[]): ParsedArgs {
   const namespace = positionals[0] !== undefined && KNOWN_NAMESPACES.has(positionals[0]) ? positionals[0] : null;
   const subcommands = namespace === null ? positionals : positionals.slice(1);
   return {
-    help, version, dryRun, autoYes, ignore, exclude, lfs, force, purgeNuget,
-    namespace, subcommands, from, to, target, store, addons, agent,
-    enableAllTools, enableAllPrompts, enableAllResources, name, layout, warnings,
+    help, version, dryRun, autoYes, ignore, exclude, lfs,
+    namespace, subcommands, from, to, target, store, name, layout, warnings,
   };
 }

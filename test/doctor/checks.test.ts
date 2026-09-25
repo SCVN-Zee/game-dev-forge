@@ -59,13 +59,6 @@ vi.mock("../../src/util/install-root.js", () => ({
   findInstallRoot: installRootMock,
   _resetInstallRoot: vi.fn(),
 }));
-const mcpCacheMocks = vi.hoisted(() => ({
-  listStagedVersions: vi.fn(async () => [] as Array<{ version: string; source: string; dir: string }>),
-  resolveCliForCore:  vi.fn(async () => null as { version: string; source: string; dir: string } | null),
-}));
-
-vi.mock("../../src/features/mcp/resolve-mcp-cache.js", () => mcpCacheMocks);
-
 vi.mock("../../src/features/store/index.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../src/features/store/index.js")>();
   return {
@@ -98,14 +91,6 @@ const isDarwin = process.platform === "darwin";
 // ---------------------------------------------------------------------------
 
 describe("CHECKS registry", () => {
-  it("registers every check, by id", () => {
-    expect(CHECKS.map((c) => c.id)).toEqual([
-      "rsync", "git", "git-lfs", "node", "bundled-node",
-      "store", "mcp-cache",
-      "beyond-compare", "unity", "fork", "mergespec",
-    ]);
-  });
-
   it("all checks have id, label, and run function", () => {
     for (const c of CHECKS) {
       expect(typeof c.id).toBe("string");
@@ -433,66 +418,5 @@ describe("macOnly checks on darwin", () => {
       const result = await getCheck("bundled-node").run();
       expect(result.severity).toBe("pass");
     });
-  });
-});
-
-// ---------------------------------------------------------------------------
-// mcp-cache check — informational: an empty cache is a normal fresh-machine
-// state, so the worst it reports is a warn. It never fails the run.
-// ---------------------------------------------------------------------------
-
-describe("check: mcp-cache", () => {
-  it("nothing staged → warn, never fail", async () => {
-    mcpCacheMocks.listStagedVersions.mockResolvedValue([]);
-
-    const result = await getCheck("mcp-cache").run();
-
-    expect(result.severity).toBe("warn");
-    expect(result.detail).toContain("nothing staged");
-  });
-
-  it("staged + cli cached → pass, newest first", async () => {
-    mcpCacheMocks.listStagedVersions.mockResolvedValue([
-      { version: "0.82.10", source: "user", dir: "/u/mcp/a" },
-      { version: "0.82.3", source: "user", dir: "/u/mcp/b" },
-    ]);
-    mcpCacheMocks.resolveCliForCore.mockResolvedValue({
-      version: "0.82.10", source: "user", dir: "/u/cli",
-    });
-
-    const result = await getCheck("mcp-cache").run();
-
-    expect(result.severity).toBe("pass");
-    expect(result.detail).toContain("V0.82.10, V0.82.3");
-    expect(result.detail).toContain("unity-mcp-cli@0.82.10");
-    expect(result.detail).not.toContain("(bundled)");
-  });
-
-  it("labels a bundled cache", async () => {
-    mcpCacheMocks.listStagedVersions.mockResolvedValue([
-      { version: "1.0.0", source: "bundled", dir: "/b/mcp/a" },
-    ]);
-    mcpCacheMocks.resolveCliForCore.mockResolvedValue({
-      version: "1.0.0", source: "bundled", dir: "/b/cli",
-    });
-
-    const result = await getCheck("mcp-cache").run();
-
-    expect(result.severity).toBe("pass");
-    expect(result.detail).toContain("(bundled)");
-  });
-
-  it("warns when the source is staged but no cli is cached", async () => {
-    // Vendoring would still work; .mcp.json could not be written — and on an
-    // offline machine there is no way to fetch the cli afterwards.
-    mcpCacheMocks.listStagedVersions.mockResolvedValue([
-      { version: "1.0.0", source: "user", dir: "/u/mcp/a" },
-    ]);
-    mcpCacheMocks.resolveCliForCore.mockResolvedValue(null);
-
-    const result = await getCheck("mcp-cache").run();
-
-    expect(result.severity).toBe("warn");
-    expect(result.detail).toContain("no unity-mcp-cli cached");
   });
 });

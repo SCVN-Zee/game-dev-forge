@@ -3,7 +3,6 @@
  */
 
 import {
-  Cable,
   ForkKnife,
   GitBranch,
   Package,
@@ -15,7 +14,6 @@ import {
 const CAP_ICONS: Record<string, LucideIcon> = {
   fork: ForkKnife,
   git: GitBranch,
-  mcp: Cable,
   packages: Package,
   settings: Settings,
 };

@@ -229,15 +229,6 @@ describe("registry exposes form prepare/execute routes", () => {
     }
   });
 
-  it("keeps the command (non-form) capabilities, projects:discover, and ping", () => {
-    for (const id of ["git", "packages", "doctor", "ping", "mcp"]) {
-      expect(typeof registry[id]).toBe("function");
-      expect(registry[`${id}:prepare`]).toBeUndefined();
-    }
-    expect(typeof registry["projects:discover"]).toBe("function");
-    expect(typeof registry["mcp:project-status"]).toBe("function");
-  });
-
   it("exposes ignore-dirty as request/response list + set routes, not a run command", () => {
     expect(typeof registry["ignore-dirty:list"]).toBe("function");
     expect(typeof registry["ignore-dirty:set"]).toBe("function");

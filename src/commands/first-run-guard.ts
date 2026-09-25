@@ -70,13 +70,6 @@ export function needsProjectsRoot(inv: Invocation): boolean {
     return false;                  // unknown verb → dispatch reports the usage error
   }
 
-  if (ns === "mcp") {
-    // status enumerates every project under the root, so it always needs one —
-    // unlike the mutating verbs, which an explicit --target short-circuits.
-    if (s === "status") return true;
-    if (s === "install" || s === "uninstall" || s === "update") return !inv.hasTarget;
-    return false;                  // bare/unknown verb → dispatch prints the usage hint
-  }
   // Top-level direct commands (namespace must be null). Trailing args are usage
   // errors, so only the exact single-token form needs the root.
   // `fork` no longer scans projects (Fork.app prefs only) → never needs the root.

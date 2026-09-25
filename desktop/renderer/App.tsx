@@ -19,7 +19,6 @@ import { RunOpView } from "@/views/run-op";
 import { GitView } from "@/views/git-view";
 import { SettingsView } from "@/views/settings-view";
 import { PackagesView } from "@/views/packages-view";
-import { McpView } from "@/views/mcp-view";
 import { InitView } from "@/views/init-view";
 import { OnboardingView } from "@/views/onboarding-view";
 import { TemplateEditorView } from "@/views/template-editor";
@@ -249,7 +248,6 @@ export function App() {
           args={route.args}
           title={route.title}
           onBack={backToForm}
-          onRun={onRun}
         />
       ) : route.kind === "editor" ? (
         <TemplateEditorView
@@ -265,8 +263,6 @@ export function App() {
           <SettingsView key={selected.id} />
         ) : selected.page === "packages" ? (
           <PackagesView key={`${selected.id}:${pkgNonce}`} onRun={onRun} />
-        ) : selected.page === "mcp" ? (
-          <McpView key={selected.id} onRun={onRun} />
         ) : selected.page === "init" ? (
           <InitView key={selected.id} onDirtyChange={setInitDirty} />
         ) : (

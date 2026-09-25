@@ -2,10 +2,8 @@
  * features/setup/setup-gitexclude.ts — Install the bundled exclude template into
  * the repo's `.git/info/exclude` as a fenced block.
  *
- * `info/exclude` is shared with the vendored-MCP block and whatever the
- * developer hand-wrote, so the template is fenced rather than copied over the
- * file (which is what the generic rsync template path used to do — see
- * setup-templates.ts, which no longer handles this key).
+ * `info/exclude` is shared with other tools and hand-written lines, so the
+ * template is fenced rather than copied over the file wholesale.
  *
  * Reporter status contract (consumed by the step-runner), matching setup-lfs:
  *   - no git repo → "skipped", not a failure
@@ -31,15 +29,13 @@ import type { SyncReporter } from "../transfer/reporter.js";
  *
  * Append the outgoing digest here whenever `templates/git-exclude` changes.
  * Skipping that strands the old body outside the fence, where no later run can
- * refresh or remove it: the v0.5 revision's `UnityMcp**` line would go on
- * matching `Assets/UnityMCP` (git defaults to case-insensitive on macOS) even
- * after `scvn mcp uninstall` strips the mcp fence.
+ * refresh or remove obsolete patterns.
  *
  * Exact-byte matching is what keeps a wholesale replace safe — a hand-edited
  * file never matches, so it always takes the additive path.
  */
 const RETIRED_TEMPLATE_DIGESTS: readonly string[] = [
-  // v0.5 — the v0.5.1 pre-trim body (below) plus a `UnityMcp**` line.
+  // v0.5 — the v0.5.1 pre-trim body with an additional retired plugin pattern.
   "b76ab88e734724934fb56f7481b28166bd05872b0955d765302e50ae1f560beb",
   // v0.5.1 — pre-trim revision (vPlugins / Others / docs-plans sections),
   // retired when templates/git-exclude was trimmed to lean defaults.

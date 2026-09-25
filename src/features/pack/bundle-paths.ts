@@ -12,7 +12,6 @@ import path from "node:path";
 import { findInstallRoot } from "../../util/install-root.js";
 import { getScvnDir } from "../../config/paths.js";
 import { BUNDLED_STORE_DIRNAME } from "../store/bundled-store-paths.js";
-import { userMcpCacheDir } from "../mcp/mcp-cache-paths.js";
 
 /** CLI trees copied verbatim from the install root into a bundle. */
 export const BUNDLE_CLI_TREES = ["bin", "dist", "templates"] as const;
@@ -26,8 +25,6 @@ export interface BundleSourcePaths {
   userStoreParent: string;
   /** The user store itself (~/.scvn/store) — for size preview + emptiness check. */
   userStoreDir: string;
-  /** The user MCP cache (~/.scvn/mcp) — the newest version dir + its CLI get bundled. */
-  mcpCacheDir: string;
   /** Cache root for downloaded Node runtimes (~/.scvn/cache/node), shared across packs. */
   nodeCacheDir: string;
   /** Directory the archive is written to (gitignored `pkg/`). */
@@ -57,7 +54,6 @@ export async function resolveBundleSourcePaths(
     cliEntry:        path.join(installRoot, "dist", "cli.mjs"),
     userStoreParent: scvnDir,
     userStoreDir:    path.join(scvnDir, BUNDLED_STORE_DIRNAME),
-    mcpCacheDir:     userMcpCacheDir(opts.scvnDirOverride),
     nodeCacheDir:    path.join(scvnDir, "cache", "node"),
     outDir:          path.join(installRoot, "pkg"),
   };

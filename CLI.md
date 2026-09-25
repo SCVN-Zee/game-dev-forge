@@ -82,61 +82,6 @@ Picking the `Assets/`, `Packages/`, or `ProjectSettings/` folder itself, the
 project root, or a folder outside any Unity project is rejected with a reason.
 Re-adding the same path updates its entry in place.
 
-### `scvn mcp` — vendor Unity-MCP as `Assets/` source
-
-Installs the AI Game Developer (Unity-MCP) plugin into a project by **copying it
-in as ordinary `Assets/` source**, not through UPM. `Packages/manifest.json`,
-`Packages/packages-lock.json`, and `ProjectSettings/PackageManagerSettings.asset`
-therefore stay byte-equal to HEAD by construction, and the vendored tree is
-git-excluded — so **after an install there is nothing to commit**, on any repo.
-
-| Verb | Description |
-|---|---|
-| `status` | Staged versions + per-project install state. Offline, always |
-| `install` | Vendor the source into a project, then write its `.mcp.json` |
-| `uninstall` | Remove the vendored source (`--purge-nuget` also drops the NuGet DLLs) |
-| `update [<coreVer>]` | Bump an installed project. An **older** `<coreVer>` is a rollback |
-
-Bare `scvn mcp` prints the verb list and exits 1 (no menu — every mutating verb
-targets a specific project).
-
-```sh
-scvn mcp status                                     # what's staged, who has it
-scvn mcp install --target ~/p/Game/Assets           # picker offers the addons
-scvn mcp install --target ~/p/Game/Assets --addons animation -y
-scvn mcp update --target ~/p/Game/Assets            # bump to registry latest
-scvn mcp update 0.83.0 --target ~/p/Game/Assets     # roll back (re-fetches from the registry)
-scvn mcp uninstall --target ~/p/Game/Assets --purge-nuget
-```
-
-**The cache.** Versions are fetched from [OpenUPM](https://package.openupm.com),
-integrity-checked (sha512), transformed, and staged under `~/.scvn/mcp/Unity-MCP V<ver>/`.
-Only the **most recently staged** version is kept: every fetch prunes the older
-`Unity-MCP V*` / `unity-mcp-cli-*` dirs, so `scvn mcp update <olderVer>` (a
-rollback) re-fetches from the registry and needs network. `scvn doctor` reports
-the cache.
-
-**Addons.** `--addons a,b` takes bare names (`animation`) or full package names.
-Omit it and the picker offers the defaults. Every domain add-on is selectable,
-`cinemachine` included — installing it pulls `com.unity.cinemachine 3.1.6`, which
-UPM may force-upgrade a CM2 project to satisfy, so pick it deliberately.
-
-**Gates.** install refuses an already-installed project (use `update`), a project
-with Unity open, and an addon that pins a *different* core version — that last pair
-compiles fine and then fails at runtime as an opaque MCP error. `--force` overrides
-each; `-n` previews everything.
-
-**Offline delivery.** `make pack` bundles the newest staged version plus the
-`unity-mcp-cli` closure, so a teammate with **no Node and no network** can unzip a
-bundle and run `scvn mcp install` (see "Deliver to a teammate"). `.mcp.json` is
-written by the real `unity-mcp-cli`, with an explicit local URL from the project’s
-`UserSettings/AI-Game-Developer-Config.json` (`host`). This preserves its port and
-project pinning instead of using the upstream `https://ai-game.dev` default.
-The host must be a loopback HTTP(S) address; non-local hosts are rejected.
-
-> **`uninstall` leaves `.mcp.json` behind.** That file can hold *other* MCP servers,
-> so removing it is not scvn's call. Delete it yourself if you want it gone.
-
 ### `scvn git` — git artifacts (.gitignore, exclude, LFS)
 
 Flag-driven group. Pick at least one op; combine freely in one run. Bare
@@ -306,26 +251,18 @@ from the repo) — there is no `scvn pack` command:
 make pack          # build + bundle → pkg/scvn-bundle-<version>.zip
 ```
 
-The zip holds the built CLI (`bin/`, `dist/`, `templates/`), an
-`INSTALL.txt`, a copy of your `~/.scvn/store/` under `store/`, and — if you have
-one staged — the newest MCP version plus its `unity-mcp-cli` under `mcp/`. Hand it
-over (Drive, Slack, USB).
+The zip holds the built CLI (`bin/`, `dist/`, `templates/`), an `INSTALL.txt`,
+a copy of your `~/.scvn/store/` under `store/`, and — unless you pass
+`make pack-no-node` — a pinned Node runtime under `node/`. Hand it over (Drive,
+Slack, USB).
 
 ```sh
 # consumer (teammate) — clean machine, empty ~/.scvn
 unzip scvn-bundle-<version>.zip -d ~/scvn-bundle
 export PATH="$PATH:$HOME/scvn-bundle/bin"    # Node is bundled — no install, no npm
 scvn packages import --to /path/to/YourGame/Assets   # applies the staged packages
-scvn mcp install --target /path/to/YourGame/Assets   # vendors Unity-MCP, offline
-scvn doctor                                  # store + MCP lines show "(bundled)"
+scvn doctor                                  # store + Node lines show "(bundled)"
 ```
-
-**MCP works with no network at all.** The bundle carries the vendored source *and*
-the `unity-mcp-cli` closure, so `scvn mcp install` needs neither a registry nor a
-Node install. It vendors whatever addon set the producer staged — a bundle that
-shipped only `animation` installs exactly that, rather than trying to fetch the
-rest. Naming `--addons` explicitly is still a hard request, and will fail offline
-if the bundle lacks it.
 
 **How the fallback works:** when `~/.scvn/store/` has nothing staged,
 `scvn packages import` and `scvn doctor` automatically read the copy shipped inside the
@@ -414,9 +351,9 @@ Releases are **tag-driven** on an Apple-Silicon runner; nothing runs on branch
 pushes:
 
 - `v<version>` with no prerelease id (e.g. `v0.6.0`) → `.github/workflows/release-stable.yml`
-  (stable; MCP tab hidden).
+  (stable).
 - `v<version>` with a prerelease id (e.g. `v0.6.0-beta.1`) → `.github/workflows/release-beta.yml`
-  (beta pre-release; MCP tab hidden — same tab set as stable).
+  (beta pre-release; same tab set as stable).
 
 The tag must equal `package.json` `version` (the workflow fails otherwise), so
 bump first:
@@ -457,8 +394,8 @@ existing installs will refuse the update:
 ./.github/scripts/gen-selfsign-cert.sh   # prints SCVN_SELFSIGN_P12 + SCVN_SELFSIGN_PASSWORD
 ```
 
-`GITHUB_TOKEN` (built-in) publishes the release. The published build hides the
-MCP tab via `SCVN_TABS=fork,git,packages,init,settings` (baked into the renderer
+`GITHUB_TOKEN` (built-in) publishes the release. The published build pins its tab
+set via `SCVN_TABS=fork,git,packages,init,settings` (baked into the renderer
 catalog and host registry); build that variant locally by prefixing any desktop
 script, e.g. `SCVN_TABS=fork,git,packages,init,settings npm run desktop:pack`.
 
@@ -497,9 +434,6 @@ capability); the rest use a guided-dialog flow over the prompt channel. The CLI
 | `--exclude` | | `scvn git`: install `.git/info/exclude` |
 | `--lfs` | | `scvn git`: `git lfs install --local` + LFS `.gitattributes` block |
 | `--store <path>` | | Snapshot-store dir override for add/import/doctor — or `SCVN_STORE_DIR` env (flag wins) |
-| `--addons <a,b>` | | `scvn mcp install`: addon selection (bare or full names) |
-| `--force` | | `scvn mcp`: override a refusing gate (already installed, pin skew, Unity open) |
-| `--purge-nuget` | | `scvn mcp uninstall`: also remove `Assets/Plugins/NuGet` |
 | `--help` | `-h` | Show help text |
 | `--version` | | Print version and exit |
 
@@ -629,33 +563,16 @@ Combine flags to bootstrap in one run: `scvn git --ignore --exclude --lfs`.
 command now errors as unknown — there is **no shim**. Manage `.editorconfig`
 directly in your project; `scvn git` and `scvn ignore-dirty` are unaffected.
 
-### v0.5 → v0.6: `unity-mcp-localize.sh` replaced by `scvn mcp`
+### MCP feature removed
 
-The standalone bash script that vendored Unity-MCP (`SC_Projects/unity-mcp-localize.sh`)
-is retired. It is archived, unmodified, at `docs/reference/unity-mcp-localize.sh`.
+All MCP commands and desktop actions have been removed: install, uninstall,
+update, status, reconfigure, finish setup, and skill generation. `scvn mcp`
+now fails as an unknown command; there is no compatibility shim.
 
-| Old (the script) | New |
-|---|---|
-| `unity-mcp-localize.sh` (bare) | `scvn mcp status` |
-| `unity-mcp-localize.sh setup <repo>` | `scvn mcp install --target <Assets>` |
-| `unity-mcp-localize.sh detach <repo>` | `scvn mcp uninstall --target <Assets>` |
-| `unity-mcp-localize.sh update <repo> [ver]` | `scvn mcp update [<ver>] --target <Assets>` |
-| `unity-mcp-localize.sh fetch [ver]` | folded into `install` (it stages what it needs) |
-| `decommission`, `test` | dropped |
-
-This is **not** the v0.2-removed `scvn sync mcp`, which was a different feature.
-
-What changed beyond the name:
-
-- **No python3, no bash, no npx.** The whole path is TypeScript; `.mcp.json` is written
-  by invoking the cached `unity-mcp-cli` through the running Node (`process.execPath`).
-- **Tarballs are verified** against the registry's sha512 before extraction. The script
-  checked nothing.
-- **Repos it wired keep working.** Its marker (`.unity-mcp-localize.json`) and its
-  `# >>> unity-mcp-localize >>>` exclude fence are both read and migrated on the next
-  `scvn mcp` run — no reinstall needed.
-- **Offline delivery.** `make pack` bundles the cache, so a teammate with no Node and
-  no network can install (the script could not).
+Doctor no longer checks the MCP cache. New offline bundles contain the CLI,
+staged package store, and optional Node runtime, without an MCP cache.
+Existing project plugins, agent configuration files, and `~/.scvn/mcp/`
+are left untouched; scvn no longer manages them.
 
 ### From sync-unity / fork-unity-setup
 

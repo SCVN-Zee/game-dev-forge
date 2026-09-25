@@ -57,27 +57,6 @@ export function replaceMarkerBlock(
   return `${text}${prefix}${separator}${block}\n`;
 }
 
-/**
- * Remove every balanced marker block of `markers` from `text`.
- *
- * Deliberately forgiving where replaceMarkerBlock throws: a removal has no
- * content to lose, so an absent pair is a no-op and duplicated blocks are all
- * dropped. An orphan marker (no partner) delimits nothing and is left in place
- * for the user to resolve. Blank lines left behind are preserved — collapsing
- * them would rewrite bytes the caller never asked us to touch.
- */
-export function stripMarkerBlock(
-  text: string,
-  markers: MarkerPair = FORK_MARKERS,
-): string {
-  const { begin, end } = markers;
-  const blockRegex = new RegExp(
-    `${escapeRegex(begin)}[\\s\\S]*?${escapeRegex(end)}\\n?`,
-    "g",
-  );
-  return text.replace(blockRegex, "");
-}
-
 function countOccurrences(text: string, marker: string): number {
   const markerRegex = new RegExp(escapeRegex(marker), "g");
   return (text.match(markerRegex) ?? []).length;

@@ -177,10 +177,6 @@ Fork setup configures only the Unity merge tool and leaves your diff tool unchan
 Git LFS is only needed for the Git setup **Install Git LFS** op. Install it
 with `brew install git-lfs` when you want that op.
 
-**There is no MCP tab**
-MCP management (vendoring the Unity-MCP plugin into a project) is CLI-only in
-released builds — see [`scvn mcp` in CLI.md](CLI.md#scvn-mcp--vendor-unity-mcp-as-assets-source).
-
 ---
 
 ## Where things live
@@ -193,6 +189,6 @@ released builds — see [`scvn mcp` in CLI.md](CLI.md#scvn-mcp--vendor-unity-mcp
 
 ## The command line
 
-Every capability above has a CLI equivalent, plus more (`scvn mcp`, one-line
-bootstrap, offline bundles for teammates). See
+Every capability above has a CLI equivalent, plus more (one-line bootstrap,
+offline bundles for teammates). See
 [CLI.md](CLI.md).

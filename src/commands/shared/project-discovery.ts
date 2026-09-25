@@ -96,7 +96,7 @@ export async function getProjectsRoot(deps: GetProjectsRootDeps = {}): Promise<s
  * parsed Unity version differs get a version-mismatch hint prefix.
  *
  * `opts.value: "projectRoot"` picks the option value's path shape — the
- * default `p.path` is the Assets dir (git/setup/mcp), the packages flow keys
+ * default `p.path` is the Assets dir (git/setup), the packages flow keys
  * on the project root.
  */
 export function projectsToOptions(

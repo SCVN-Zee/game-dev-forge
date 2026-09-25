@@ -17,7 +17,6 @@ import { BUNDLED_STORE_DIRNAME } from "../store/bundled-store-paths.js";
 import { BUNDLE_CLI_TREES } from "./bundle-paths.js";
 import { buildInstallText } from "./install-text.js";
 import { stageNodeRuntime } from "./node-runtime-staging.js";
-import { stageMcpCache } from "./mcp-cache-staging.js";
 
 export interface AssembleBundleOpts {
   /** Install root holding bin/, dist/, templates/. */
@@ -30,8 +29,6 @@ export interface AssembleBundleOpts {
   version: string;
   /** When set, stage this verified `bin/node` into `<staging>/node/bin/node`. */
   nodeBinPath?: string;
-  /** When set, bundle the newest MCP version (+ its CLI) from this cache (~/.scvn/mcp). */
-  mcpCacheDir?: string;
   reporter?: SyncReporter;
 }
 
@@ -45,7 +42,7 @@ async function pathExists(target: string): Promise<boolean> {
 }
 
 /**
- * Copy bin/dist/templates + store/ + mcp/ into the staging dir and write
+ * Copy bin/dist/templates + store/ into the staging dir and write
  * INSTALL.txt. Throws if any copy fails (the caller cleans the staging dir).
  */
 export async function assembleBundle(opts: AssembleBundleOpts): Promise<void> {
@@ -71,14 +68,6 @@ export async function assembleBundle(opts: AssembleBundleOpts): Promise<void> {
     });
   } else {
     await mkdir(path.join(opts.stagingDir, BUNDLED_STORE_DIRNAME), { recursive: true });
-  }
-
-  if (opts.mcpCacheDir) {
-    await stageMcpCache({
-      mcpCacheDir: opts.mcpCacheDir,
-      stagingDir: opts.stagingDir,
-      reporter,
-    });
   }
 
   if (opts.nodeBinPath) {

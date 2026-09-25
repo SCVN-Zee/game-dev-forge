@@ -22,7 +22,7 @@ describe("parseTabSelection", () => {
   });
 
   it("splits, trims, and drops blanks", () => {
-    expect(parseTabSelection(" fork , git ,, mcp")).toEqual(["fork", "git", "mcp"]);
+    expect(parseTabSelection(" fork , git ,, packages")).toEqual(["fork", "git", "packages"]);
   });
 });
 

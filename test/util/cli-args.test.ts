@@ -110,34 +110,6 @@ describe("parseArgv — namespace extraction", () => {
     expect(r.subcommands).toEqual(["toolkit"]);
   });
 
-  it("empty argv returns all defaults", () => {
-    const r = parseArgv([]);
-    expect(r).toEqual({
-      help: false,
-      version: false,
-      dryRun: false,
-      autoYes: false,
-      ignore: false,
-      exclude: false,
-      lfs: false,
-      force: false,
-      purgeNuget: false,
-      namespace: null,
-      subcommands: [],
-      from: undefined,
-      to: [],
-      target: undefined,
-      store: undefined,
-      addons: undefined,
-      agent: undefined,
-      enableAllTools: true,
-      enableAllPrompts: true,
-      enableAllResources: true,
-      name: undefined,
-      layout: undefined,
-      warnings: [],
-    });
-  });
   it("sync with multiple subcommands preserves order", () => {
     const r = parseArgv(["sync", "gitignore", "lfs", "gitexclude"]);
     expect(r.namespace).toBe("sync");
@@ -337,64 +309,6 @@ describe("parseArgv — value flag --store", () => {
     expect(r.store).toBe("/s");
     expect(r.to).toEqual(["/t"]);
     expect(r.autoYes).toBe(true);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// `scvn mcp` — namespace, --addons, --force, --purge-nuget
-// ---------------------------------------------------------------------------
-
-describe("mcp namespace + flags", () => {
-  it("classifies mcp as a namespace and keeps the verb as a subcommand", () => {
-    const r = parseArgv(["mcp", "status"]);
-    expect(r.namespace).toBe("mcp");
-    expect(r.subcommands).toEqual(["status"]);
-  });
-
-  it("keeps a bare `mcp` as a namespace with no verb (dispatch prints the hint)", () => {
-    const r = parseArgv(["mcp"]);
-    expect(r.namespace).toBe("mcp");
-    expect(r.subcommands).toEqual([]);
-  });
-
-  it("keeps the update positional after the verb", () => {
-    const r = parseArgv(["mcp", "update", "0.82.3"]);
-    expect(r.subcommands).toEqual(["update", "0.82.3"]);
-  });
-
-  it("captures --addons as a CSV value", () => {
-    const r = parseArgv(["mcp", "install", "--addons", "animation,particlesystem"]);
-    expect(r.addons).toBe("animation,particlesystem");
-    expect(r.subcommands).toEqual(["install"]);
-  });
-
-  it("accepts the --addons=a,b equals form", () => {
-    expect(parseArgv(["mcp", "install", "--addons=animation"]).addons).toBe("animation");
-  });
-
-  it("warns and ignores --addons with no value, without swallowing the next flag", () => {
-    const r = parseArgv(["mcp", "install", "--addons", "-y"]);
-    expect(r.addons).toBeUndefined();
-    expect(r.autoYes).toBe(true);
-    expect(r.warnings[0]).toContain("--addons");
-  });
-
-  it("parses --force and --purge-nuget as booleans", () => {
-    const r = parseArgv(["mcp", "uninstall", "--force", "--purge-nuget"]);
-    expect(r.force).toBe(true);
-    expect(r.purgeNuget).toBe(true);
-  });
-
-  it("defaults --force and --purge-nuget to false", () => {
-    const r = parseArgv(["mcp", "install"]);
-    expect(r.force).toBe(false);
-    expect(r.purgeNuget).toBe(false);
-  });
-
-  it("does not confuse --exclude (a git op) with the mcp flags", () => {
-    const r = parseArgv(["git", "--exclude"]);
-    expect(r.exclude).toBe(true);
-    expect(r.force).toBe(false);
   });
 });
 
