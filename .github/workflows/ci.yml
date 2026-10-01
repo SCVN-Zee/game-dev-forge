@@ -1,0 +1,37 @@
+name: ci
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: macos-14
+    env:
+      SCVN_TABS: fork,git,init,settings
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Typecheck CLI and desktop
+        run: |
+          npm run typecheck
+          npm run typecheck:desktop
+      - name: Test
+        run: npm test
+      - name: Build CLI and desktop
+        run: |
+          npm run build
+          npm run desktop:build

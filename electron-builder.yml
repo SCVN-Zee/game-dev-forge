@@ -42,8 +42,8 @@ npmRebuild: false
 # Publish manual-install downloads without auto-update metadata.
 publish:
   provider: github
-  owner: Supercent-Vietnam
-  repo: scvn-cli
+  owner: SCVN-Zee
+  repo: game-dev-forge
   publishAutoUpdate: false
 
 mac:

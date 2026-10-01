@@ -18,7 +18,7 @@ The project/package name is `game-dev-forge`; the executable is `gdf`.
 ## Install
 
 1. **Download** the latest release from
-   [GitHub Releases](https://github.com/Supercent-Vietnam/scvn-cli/releases/latest)
+   [GitHub Releases](https://github.com/SCVN-Zee/game-dev-forge/releases/latest)
    — grab the `Game Dev Forge-<version>-arm64.dmg` file.
 2. Open the `.dmg` and drag **Game Dev Forge** into your
    **Applications** folder.
@@ -148,8 +148,8 @@ Existing directories are preserved; existing files are never touched.
 
 ## Updating
 
-Download the newer `.dmg` from the private repository’s GitHub Releases
-(repository access is required), replace the app in Applications, and re-run
+Download the newer `.dmg` from [GitHub Releases](https://github.com/SCVN-Zee/game-dev-forge/releases/latest),
+replace the app in Applications, and re-run
 the `xattr` command from the [install steps](#install) if macOS blocks it.
 Your settings in `~/.scvn/` survive replacement. The app does not check for,
 download, or install updates.

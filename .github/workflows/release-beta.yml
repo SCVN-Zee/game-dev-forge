@@ -9,7 +9,7 @@
 # semver. `0.5.0b` is invalid semver and would misfile assets under a stray
 # `v0.5.0` draft; `0.6.0-beta.1` derives the matching `v0.6.0-beta.1` tag.
 #
-# Env split by tag, NOT by branch push (nothing runs on push to dev/main):
+# Release routing follows tags, not branch pushes:
 #   - v<version> with a prerelease id (v*-*) → this workflow    (beta)
 #   - v<version> release (no prerelease id)  → release-stable.yml (stable)
 #
@@ -29,6 +29,9 @@ concurrency:
 permissions:
   contents: write
 
+env:
+  GH_REPO: ${{ github.repository }}
+
 jobs:
   beta:
     runs-on: macos-14 # electron-builder --mac must run on macOS
@@ -40,7 +43,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"
           cache: npm
 
       - name: Verify tag == v${version} and version is a semver prerelease
@@ -59,10 +62,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Typecheck (CLI + desktop)
+      - name: Check and test
         run: |
           npm run typecheck
           npm run typecheck:desktop
+          npm test
 
       # Pre-create one draft so parallel uploaders attach to the same release.
       # Publish only after all manual-install assets have uploaded successfully.

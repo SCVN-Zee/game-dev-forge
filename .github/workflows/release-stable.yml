@@ -6,7 +6,7 @@
 #   2. Self-signed cert (SCVN_SELFSIGN_P12) — right-click→Open on first run.
 #   3. Ad-hoc fallback (no secrets) — right-click→Open on first run.
 #
-# Env split by tag, NOT by branch push (nothing runs on push to dev/main):
+# Release routing follows tags, not branch pushes:
 #   - v<version> release (no prerelease id)  → this workflow      (stable)
 #   - v<version> with a prerelease id (v*-*) → release-beta.yml   (beta)
 # The `!v*-*` line below keeps semver prerelease tags off this workflow —
@@ -35,6 +35,9 @@ concurrency:
 permissions:
   contents: write
 
+env:
+  GH_REPO: ${{ github.repository }}
+
 jobs:
   release:
     runs-on: macos-14 # Apple Silicon (arm64), matches the shipped target
@@ -43,7 +46,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"
           cache: npm
 
       - name: Verify tag matches package.json version
@@ -56,6 +59,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Check and test
+        run: |
+          npm run typecheck
+          npm run typecheck:desktop
+          npm test
 
       # electron-builder runs parallel GitHub uploaders; if the release does not
       # yet exist they race and each creates a separate draft, splitting assets

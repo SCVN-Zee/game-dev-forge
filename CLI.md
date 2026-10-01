@@ -271,8 +271,9 @@ and `xcrun stapler validate "dist-desktop-pack/Game Dev Forge-"*.dmg`.
 
 ### Automated releases & manual updates
 
-Releases are **tag-driven** on an Apple-Silicon runner; nothing runs on branch
-pushes:
+Releases are **tag-driven** on an Apple-Silicon runner using Node 24 and publish
+to [SCVN-Zee/game-dev-forge](https://github.com/SCVN-Zee/game-dev-forge/releases).
+Branch pushes and pull requests run checks and builds without publishing:
 
 - `v<version>` with no prerelease id (e.g. `v0.6.0`) → `.github/workflows/release-stable.yml`
   (stable).
@@ -313,8 +314,8 @@ set via `SCVN_TABS=fork,git,init,settings` (baked into the renderer catalog and
 host registry); build that variant locally by prefixing any desktop script, e.g.
 `SCVN_TABS=fork,git,init,settings npm run desktop:pack`.
 
-Install newer builds manually from this private repository’s GitHub Releases
-(repository access is required). Replace the app in Applications; existing
+Install newer builds manually from this repository’s GitHub Releases.
+Replace the app in Applications; existing
 settings are preserved. The app has no update checks, download/install controls,
 or update-channel preferences. Settings contains only Config and Doctor.
 
