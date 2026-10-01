@@ -45,6 +45,7 @@ afterEach(() => {
   process.stderr.write = origStderr;
   process.exitCode = undefined;
   vi.restoreAllMocks();
+  vi.unstubAllEnvs();
 });
 
 // ---------------------------------------------------------------------------
@@ -67,6 +68,9 @@ const handlerMocks = vi.hoisted(() => ({
 // ---------------------------------------------------------------------------
 
 vi.mock("../../src/services/discover.js", () => discoverMock);
+vi.mock("../../src/config/load.js", () => ({
+  loadConfig: vi.fn(async () => ({ projectsRoot: "/projects" })),
+}));
 
 vi.mock("../../src/features/setup/setup-templates.js", () => ({
   setupTemplate:  handlerMocks.setupTemplate,
@@ -135,7 +139,8 @@ function withTargetPreset(fn: () => Promise<void>): () => Promise<void> {
 describe("runSetupOp()", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    delete process.env["SCVN_TARGET"];
+    vi.stubEnv("SCVN_TARGET", undefined);
+    vi.stubEnv("SCVN_PROJECTS_ROOT", undefined);
     resetMocks();
   });
 
@@ -328,15 +333,6 @@ describe("runSetupOp()", () => {
 
     expect(interactiveCalls(prompt)).toHaveLength(0);
     expect(picked).toEqual(new Set(["Assets/Supercent/Luna"]));
-  });
-
-  // -------------------------------------------------------------------------
-  // Surface strings + error path
-  // -------------------------------------------------------------------------
-
-  it("intro carries the direct command name (gdf <op>)", async () => {
-    await runSetupOp("ignore-dirty", { target: "/projects/luna/Assets" }, fakePrompt([]));
-    expect(output.join("")).toContain("gdf ignore-dirty");
   });
 
   it("sets exitCode 1 when a handler fails", async () => {

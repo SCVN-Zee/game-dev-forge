@@ -66,6 +66,7 @@ jobs:
         run: |
           npm run typecheck
           npm run typecheck:desktop
+          npm run build
           npm test
 
       # Pre-create one draft so parallel uploaders attach to the same release.

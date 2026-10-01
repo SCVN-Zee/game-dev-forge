@@ -64,6 +64,7 @@ jobs:
         run: |
           npm run typecheck
           npm run typecheck:desktop
+          npm run build
           npm test
 
       # electron-builder runs parallel GitHub uploaders; if the release does not

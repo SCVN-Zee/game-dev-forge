@@ -273,7 +273,8 @@ and `xcrun stapler validate "dist-desktop-pack/Game Dev Forge-"*.dmg`.
 
 Releases are **tag-driven** on an Apple-Silicon runner using Node 24 and publish
 to [SCVN-Zee/game-dev-forge](https://github.com/SCVN-Zee/game-dev-forge/releases).
-Branch pushes and pull requests run checks and builds without publishing:
+Branch pushes and pull requests do not trigger workflows. Release workflows run
+typechecks, build the CLI for smoke tests, and run tests before packaging and publishing:
 
 - `v<version>` with no prerelease id (e.g. `v0.6.0`) → `.github/workflows/release-stable.yml`
   (stable).
