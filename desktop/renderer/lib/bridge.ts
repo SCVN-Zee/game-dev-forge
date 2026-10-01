@@ -47,12 +47,6 @@ export function pickDirectory(
   return window.scvn.pickDirectory(options);
 }
 
-export function pickDirectories(
-  options?: { kind?: "dir" | "path"; title?: string; defaultPath?: string },
-): Promise<string[] | null> {
-  return window.scvn.pickDirectories(options);
-}
-
 export function pickSaveFile(
   options?: { title?: string; defaultPath?: string },
 ): Promise<string | null> {

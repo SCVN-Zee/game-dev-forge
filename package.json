@@ -21,7 +21,7 @@
     "desktop:build:main": "tsup --config tsup.desktop.config.ts",
     "desktop:build:renderer": "vite build",
     "desktop:build:assets": "node -e \"const {cpSync}=require('node:fs');cpSync('templates','dist-desktop/templates',{recursive:true})\"",
-    "desktop:build": "npm run desktop:build:main && npm run desktop:build:renderer && npm run desktop:build:assets",
+    "desktop:build": "node -e \"require('node:fs').rmSync('dist-desktop',{recursive:true,force:true})\" && npm run desktop:build:main && npm run desktop:build:renderer && npm run desktop:build:assets",
     "desktop:start": "node desktop/scripts/start.mjs",
     "desktop:pack": "npm run desktop:build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --config electron-builder.yml --publish never",
     "desktop:release": "npm run desktop:build && electron-builder --mac --config electron-builder.yml --publish never",

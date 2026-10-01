@@ -1,14 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FolderOpen, LoaderCircle, Pencil, TriangleAlert } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  FolderOpen,
+  Info,
+  LoaderCircle,
+  Pencil,
+  TriangleAlert,
+} from "lucide-react";
+
+import { PageHeader } from "@/components/page-header";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -162,50 +163,30 @@ export function CapabilityForm(props: CapabilityFormProps): React.JSX.Element {
   };
 
   return (
-    <div className="mx-auto w-full max-w-4xl p-6">
+    <div className="workspace-page flex h-full min-h-0 flex-col gap-3 p-4 sm:p-5">
+      <PageHeader title={spec.label} description={spec.description} />
       {loadState.status === "loading" ? (
-        <div className="flex flex-col items-center justify-center gap-2 py-16">
-          <LoaderCircle className="size-4 animate-spin" />
-          <p className="text-sm text-muted-foreground" role="status">
-            Preparing…
-          </p>
-        </div>
+        <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
+          <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />Preparing {spec.label}…
+        </p>
       ) : loadState.status === "error" ? (
-        <p className="text-destructive">{loadState.message}</p>
+        <p role="alert" className="text-sm text-destructive">Could not prepare {spec.label}: {loadState.message}</p>
       ) : (
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>{spec.label}</CardTitle>
-            <CardDescription>{spec.description}</CardDescription>
-          </CardHeader>
-          {note ? <p className="px-6 text-sm text-muted-foreground">{note}</p> : null}
-          <CardContent>
-            <form
-              className="space-y-4"
-              onSubmit={(event) => {
-                event.preventDefault();
-                run();
-              }}
-            >
-              {visibleFields.map((field) => (
-                <LaunchFieldControl
-                  key={field.name}
-                  field={field}
-                  value={values[field.name]}
-                  onChange={(value) => setFieldValue(field.name, value)}
-                  onEditTemplate={onEditTemplate}
-                />
-              ))}
-              <Button type="button" disabled={blocker !== undefined} onClick={run}>
+        <Card className="w-full gap-0 p-0">
+          <form className="space-y-4 p-4" aria-label={spec.label + " setup"} onSubmit={(event) => { event.preventDefault(); run(); }}>
+            {visibleFields.map((field) => (
+              <LaunchFieldControl key={field.name} field={field} value={values[field.name]}
+                onChange={(value) => setFieldValue(field.name, value)} onEditTemplate={onEditTemplate} />
+            ))}
+            {visibleFields.length === 0 ? <p className="text-sm text-muted-foreground">No additional settings required.</p> : null}
+            {note ? <p role="note" className="flex items-start gap-2 text-xs leading-5 text-muted-foreground"><Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />{note}</p> : null}
+            {blocker !== undefined ? <p role="alert" className="text-sm text-destructive">{blocker}</p> : null}
+            <div className="flex justify-end border-t border-border pt-3">
+              <Button type="submit" disabled={blocker !== undefined}>
                 {spec.form === true ? "Apply" : "Run"}
               </Button>
-              {blocker !== undefined ? (
-                <p className="text-sm text-destructive" role="alert">
-                  {blocker}
-                </p>
-              ) : null}
-            </form>
-          </CardContent>
+            </div>
+          </form>
         </Card>
       )}
     </div>
@@ -225,18 +206,21 @@ function LaunchFieldControl(props: {
     case "boolean": {
       const templateKey = field.templateKey;
       return (
-        <div className="flex items-center justify-between rounded-lg border bg-card px-3 py-2.5">
-          <Label htmlFor={id}>{field.label}</Label>
+        <div className="flex items-center gap-3 border-t border-border pt-3">
+          <div className="min-w-0 flex-1">
+            <Label htmlFor={id} className="cursor-pointer text-sm font-medium">{field.label}</Label>
+          </div>
           <div className="flex shrink-0 items-center gap-1.5">
             {templateKey && onEditTemplate ? (
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                aria-label={`Edit ${field.label} template`}
+                aria-label={"Edit " + field.label + " template"}
+                title={"Edit " + field.label + " template"}
                 onClick={() => onEditTemplate(templateKey)}
               >
-                <Pencil />
+                <Pencil aria-hidden="true" />
               </Button>
             ) : null}
             <Switch id={id} checked={value === true} onCheckedChange={(next) => onChange(next)} />
@@ -248,12 +232,12 @@ function LaunchFieldControl(props: {
       const textValue = typeof value === "string" ? value : "";
       const kind = field.kind;
       return (
-        <div className="space-y-2">
-          <Label htmlFor={id}>{field.label}</Label>
-          <div className="flex gap-2">
+        <div className="space-y-2.5">
+          <Label htmlFor={id} className="text-sm font-medium">{field.label}</Label>
+          <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
             <Input
               id={id}
-              className="flex-1"
+              className={kind === "dir" || kind === "path" ? "min-w-0 flex-1 font-mono text-sm" : "min-w-0 flex-1"}
               value={textValue}
               placeholder={field.placeholder}
               onChange={(event) => onChange(event.target.value)}
@@ -262,6 +246,7 @@ function LaunchFieldControl(props: {
               <Button
                 type="button"
                 variant="outline"
+                className="shrink-0"
                 onClick={() => {
                   void pickDirectory({ kind, title: field.label }).then((picked) => {
                     if (picked !== null) onChange(picked);
@@ -280,8 +265,8 @@ function LaunchFieldControl(props: {
       const selected =
         typeof value === "string" ? value : (field.default ?? field.options[0]?.value ?? "");
       return (
-        <div className="space-y-2">
-          <Label htmlFor={id}>{field.label}</Label>
+        <div className="space-y-2.5">
+          <Label htmlFor={id} className="text-sm font-medium">{field.label}</Label>
           <Select value={selected} onValueChange={(next) => onChange(next)}>
             <SelectTrigger id={id} className="w-full">
               <SelectValue placeholder="Select…" />
@@ -300,17 +285,19 @@ function LaunchFieldControl(props: {
     case "multiselect": {
       const selected = Array.isArray(value) ? value : [];
       return (
-        <div className="space-y-2">
-          <Label>{field.label}</Label>
-          <div role="group" aria-label={field.label} className="space-y-0.5 rounded-lg border bg-card p-2">
-            {field.options.map((option) => {
-              const optionId = `${id}-${option.value}`;
+        <div className="space-y-2.5">
+          <Label className="text-sm font-medium">{field.label}</Label>
+          <div role="group" aria-label={field.label} className="grid gap-1.5 rounded-xl border bg-muted/20 p-2 sm:grid-cols-2">
+            {field.options.length === 0 ? (
+              <p className="px-2 py-2 text-sm text-muted-foreground">No options available.</p>
+            ) : field.options.map((option) => {
+              const optionId = id + "-" + option.value;
               const checked = selected.includes(option.value);
               return (
                 <Label
                   key={option.value}
                   htmlFor={optionId}
-                  className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 font-normal hover:bg-accent"
+                  className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 font-normal hover:bg-accent"
                 >
                   <Checkbox
                     id={optionId}
@@ -323,7 +310,7 @@ function LaunchFieldControl(props: {
                       )
                     }
                   />
-                  <span>{option.label}</span>
+                  <span className="text-sm">{option.label}</span>
                 </Label>
               );
             })}
@@ -350,23 +337,23 @@ function LaunchFieldControl(props: {
  */
 function ProjectOptionRow({ project }: { project: DiscoveredProject }): React.JSX.Element {
   return (
-    <span className="flex w-full min-w-0 items-center justify-start gap-2 text-left">
-      <span className="min-w-0 truncate">
+    <span className="flex w-full min-w-0 items-center gap-2 text-left">
+      <span className="min-w-0 flex-1 truncate">
         <span className="font-medium text-foreground">{project.name}</span>
         {project.scene ? <span className="ml-1 text-muted-foreground">({project.scene})</span> : null}
       </span>
       {project.branch ? (
-        <span className="max-w-[45%] shrink-0 truncate rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
+        <span className="max-w-[45%] shrink-0 truncate rounded-md border bg-muted/50 px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
           {project.branch}
         </span>
       ) : null}
       {project.mismatch ? (
-        <span title={project.mismatch} className="shrink-0 text-amber-500">
-          <TriangleAlert className="size-3.5" />
+        <span title={project.mismatch} role="img" aria-label={project.mismatch} className="shrink-0 text-warning">
+          <TriangleAlert className="size-3.5" aria-hidden="true" />
         </span>
       ) : null}
       {project.age ? (
-        <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{project.age}</span>
+        <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{project.age}</span>
       ) : null}
     </span>
   );
@@ -413,14 +400,24 @@ export function ProjectControl(props: {
     value && !known.some((p) => p.value === value) ? [{ value, name: value }, ...known] : known;
   const selected = options.find((p) => p.value === value);
   const placeholder =
-    projects === null ? "Loading projects…" : options.length > 0 ? "Select a project" : "No projects found — Browse…";
+    projects === null
+      ? error
+        ? "Project discovery failed — Browse…"
+        : "Loading projects…"
+      : options.length > 0
+        ? "Select a project"
+        : "No projects found — Browse…";
 
   return (
     <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
-      <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+      <Label htmlFor={id} className="text-xs font-medium">{label}</Label>
+      <div className="flex min-w-0 flex-wrap items-center gap-2">
         <Select value={value || undefined} onValueChange={onChange}>
-          <SelectTrigger id={id} className="min-w-0 flex-1 basis-0 text-left" aria-label={selected ? selected.name : placeholder}>
+          <SelectTrigger
+            id={id}
+            className="min-w-40 flex-1 basis-0 text-left"
+            aria-label={selected ? selected.name : placeholder}
+          >
             {selected ? (
               <ProjectOptionRow project={selected} />
             ) : (
@@ -445,15 +442,20 @@ export function ProjectControl(props: {
             });
           }}
         >
-          <FolderOpen />
+          <FolderOpen aria-hidden="true" />
           Browse…
         </Button>
         {action}
       </div>
       {error ? (
-        <p className="text-xs text-destructive">{error}</p>
+        <div className="flex items-start gap-2 text-xs text-destructive" role="alert">
+          <TriangleAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+          <span>{error}</span>
+        </div>
       ) : root ? (
-        <p className="text-xs text-muted-foreground">Projects under {root}</p>
+        <p className="truncate text-xs text-muted-foreground" title={root}>
+          Projects root: <code className="font-mono">{root}</code>
+        </p>
       ) : null}
     </div>
   );

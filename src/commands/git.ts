@@ -87,7 +87,7 @@ export async function runGitCommand(
   output.intro("gdf git");
 
   // Target resolution: --target flag → SCVN_TARGET env → interactive picker.
-  // Never auto-pick under --yes (parity with the import --to safety rule).
+  // Never auto-pick under --yes; the explicit target prevents an unintended project write.
   const preset = args.target || process.env["SCVN_TARGET"] || null;
   if (!preset && autoYes) {
     output.log.error("--yes requires an explicit target: pass --target <Assets dir> or set SCVN_TARGET");

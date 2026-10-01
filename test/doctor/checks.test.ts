@@ -27,10 +27,6 @@ const detectUnityMock      = vi.hoisted(() => vi.fn());
 const detectForkRunningMock = vi.hoisted(() => vi.fn<() => Promise<boolean>>());
 const execaMock            = vi.hoisted(() => vi.fn());
 const installRootMock      = vi.hoisted(() => vi.fn());
-const storeMetaMocks       = vi.hoisted(() => ({
-  readPackagesStoreMeta:    vi.fn(),
-  resolveEffectiveStoreDir: vi.fn(),
-}));
 
 vi.mock("../../src/services/rsync.js", () => ({
   rsyncSupportsProgress2: rsyncSupportsMock,
@@ -49,14 +45,6 @@ vi.mock("../../src/util/install-root.js", () => ({
   findInstallRoot: installRootMock,
   _resetInstallRoot: vi.fn(),
 }));
-vi.mock("../../src/features/store/index.js", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../../src/features/store/index.js")>();
-  return {
-    ...actual,
-    readPackagesStoreMeta:    storeMetaMocks.readPackagesStoreMeta,
-    resolveEffectiveStoreDir: storeMetaMocks.resolveEffectiveStoreDir,
-  };
-});
 
 // ---------------------------------------------------------------------------
 // Import under test (after mocks registered)
@@ -189,57 +177,6 @@ describe("check: node", () => {
 // store check — informational, never fails
 // ---------------------------------------------------------------------------
 
-describe("check: store", () => {
-  const STAGED_PACKAGES = {
-    kind: "packages",
-    packages: [{
-      label: "vFolders", relPath: "vFolders", bytes: 1024,
-      sourcePath: "/p/hub/Assets", sourceName: "hub", branch: "main",
-      stagedAt: new Date().toISOString(),
-    }],
-  };
-
-  beforeEach(() => {
-    storeMetaMocks.readPackagesStoreMeta.mockReset().mockResolvedValue(null);
-    storeMetaMocks.resolveEffectiveStoreDir.mockReset().mockResolvedValue({ storeDir: "/u/.scvn/store", source: "user" });
-  });
-
-  it("empty store → pass with 'nothing staged' hint (never a failure)", async () => {
-    const result = await getCheck("store").run();
-    expect(result.severity).toBe("pass");
-    expect(result.detail).toContain("nothing staged");
-  });
-
-  it("staged packages → pass with library count + size", async () => {
-    storeMetaMocks.readPackagesStoreMeta.mockResolvedValue(STAGED_PACKAGES);
-
-    const result = await getCheck("store").run();
-    expect(result.severity).toBe("pass");
-    expect(result.detail).toContain("packages: 1 staged");
-    expect(result.detail).toContain("1.0 KB");
-    expect(result.detail).not.toContain("(bundled)"); // user source → no label
-  });
-
-  it("bundled source → provenance line tagged (bundled)", async () => {
-    storeMetaMocks.resolveEffectiveStoreDir.mockResolvedValue({ storeDir: "/cli/store", source: "bundled" });
-    storeMetaMocks.readPackagesStoreMeta.mockResolvedValue(STAGED_PACKAGES);
-
-    const result = await getCheck("store").run();
-    expect(result.severity).toBe("pass");
-    expect(result.detail).toContain("(bundled)");
-  });
-
-  it("override context → resolver gets the override; provenance line tagged (override)", async () => {
-    storeMetaMocks.resolveEffectiveStoreDir.mockResolvedValue({ storeDir: "/bundle/store", source: "override" });
-    storeMetaMocks.readPackagesStoreMeta.mockResolvedValue(STAGED_PACKAGES);
-
-    const result = await getCheck("store").run({ storeOverride: "/bundle/store" });
-
-    expect(storeMetaMocks.resolveEffectiveStoreDir).toHaveBeenCalledWith("packages", { override: "/bundle/store" });
-    expect(result.severity).toBe("pass");
-    expect(result.detail).toContain("(override)");
-  });
-});
 
 // ---------------------------------------------------------------------------
 // macOS-only checks — on non-darwin they all return skipped
@@ -269,7 +206,6 @@ describe("macOnly checks on darwin", () => {
     it.skip("skipping darwin tests on non-macOS", () => {});
     return;
   }
-
 
   // unity check
   describe("check: unity", () => {
@@ -308,7 +244,6 @@ describe("macOnly checks on darwin", () => {
       expect(result.detail).toMatch(/Fork is running/);
     });
   });
-
 
   // bundled-node check (RT#11 diagnostic)
   describe("check: bundled-node", () => {

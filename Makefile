@@ -8,8 +8,8 @@
 #                      Override the bump: `make bump VERSION=minor` / `VERSION=major` /
 #                      an explicit version `VERSION=1.2.3`. Push with `git push --follow-tags`.
 #   make build         Build the self-contained dist/cli.mjs (tsup).
-#   make pack          Build, then bundle bin/dist/templates + ~/.scvn/store + a pinned Node
-#                      runtime into pkg/gdf-bundle-<version>.zip (deliver to a teammate).
+#   make pack          Build, then bundle bin/dist/templates + a pinned Node
+#                      runtime into pkg/gdf-bundle-<version>.zip (portable CLI).
 #   make pack-no-node  Same as pack, but omit the bundled Node (consumer needs system Node >=20).
 #
 # Packaging reuses the CLI's own TypeScript pack logic via tsx (a devDependency); there is no

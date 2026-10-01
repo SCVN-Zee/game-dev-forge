@@ -20,7 +20,7 @@ describe("formatFatal", () => {
   });
 
   it("multi-line gdf: errors keep their detail lines", () => {
-    const err = new Error("gdf: no valid packages in /x\n  line 1: garbage");
+    const err = new Error("gdf: operation failed\n  line 1: garbage");
     expect(formatFatal(err)).toContain("line 1: garbage");
   });
 

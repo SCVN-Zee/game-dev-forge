@@ -6,8 +6,7 @@
  * Otherwise: run one-shot config migration, parse argv, then dispatch —
  * all commands run as linear clack flows.
  *
- * Grammar: `packages` is the sole asset noun, keeping its export/import verbs;
- * bootstrap ops are direct top-level commands (fork, ignore-dirty, gitignore,
+ * Bootstrap ops are direct top-level commands (fork, ignore-dirty, gitignore,
  * gitexclude). `gdf sync …`, bare `gdf all`, and `gdf setup …`
  * print migration tables and exit 1 (clean breaks). Unknown commands and unknown
  * verbs fail loudly (exit 1) — only bare `gdf` helps.
@@ -15,11 +14,9 @@
 
 import { migrate } from "./config/index.js";
 import { parseArgv } from "./util/cli-args.js";
-import { resolveStoreOverride } from "./util/store-override.js";
 import { getVersion } from "./util/app-info.js";
 import { HELP_TEXT } from "./commands/help-text.js";
 import { runDoctor } from "./commands/doctor.js";
-import { runPackages } from "./commands/packages.js";
 import { printSyncMigrationHint } from "./commands/sync-migration-hint.js";
 import { printSetupMigrationHint } from "./commands/setup-migration-hint.js";
 import { printGitGroupingHint } from "./commands/git-migration-hint.js";
@@ -39,16 +36,6 @@ import { PromptCancelled, ProjectsRootError, ConfigRequiredError } from "./ui/er
 // ---------------------------------------------------------------------------
 
 installFatalHandlers();
-
-// ---------------------------------------------------------------------------
-// Known tokens
-//
-// Validate noun verbs before dispatching to their handler.
-// ---------------------------------------------------------------------------
-
-const NOUN_VERBS: Record<string, readonly string[]> = {
-  packages: ["add", "remove", "import", "export"],
-};
 
 // ---------------------------------------------------------------------------
 // Fast-path exits
@@ -81,9 +68,6 @@ for (const warning of args.warnings) {
   console.error(`gdf: ${warning}`);
 }
 
-// Snapshot-store override: --store flag › SCVN_STORE_DIR env › none. Threaded to
-// export, import, batch, and doctor so both halves can target one dir (e.g. a bundle).
-const storeOverride = resolveStoreOverride(args.store);
 
 const firstSub = args.subcommands[0] ?? "";
 
@@ -97,28 +81,10 @@ const effectiveNamespace =
 //
 // Root-needing commands require a valid SCVN_PROJECTS_ROOT. When it is missing,
 // unset, or points to a non-existent dir: interactive runs launch `gdf config`
-// then continue; -y / non-TTY runs exit 1. Flag-driven (--from/--to/--target)
+// then continue; -y / non-TTY runs exit 1. Flag-driven (--target)
 // and exempt commands (config/doctor/help/--version/hints) skip the guard.
 // ---------------------------------------------------------------------------
 
-/**
- * Validate a noun's verb token. undefined → interactive menu (interactive
- * only — under --yes an explicit verb is required so scripts fail loudly
- * instead of opening a menu that a non-TTY run would silently cancel).
- */
-function nounVerb(noun: string): string | undefined {
-  const verbs = NOUN_VERBS[noun] ?? [];
-  if (!firstSub) {
-    if (args.autoYes) {
-      console.error(`--yes requires an explicit verb: gdf ${noun} ${verbs.join("|")}`);
-      process.exit(1);
-    }
-    return undefined;
-  }
-  if (verbs.includes(firstSub)) return firstSub;
-  console.error(`Unknown ${noun} subcommand: ${firstSub}\nUsage: gdf ${noun} [${verbs.join("|")}]`);
-  process.exit(1);
-}
 
 // Control-flow errors from the shared command layer are mapped to CLI exit
 // behavior here (the layer throws instead of calling process.exit so the same
@@ -128,24 +94,12 @@ try {
   await ensureProjectsRootConfigured({
     namespace:   effectiveNamespace,
     subcommands: args.subcommands,
-    hasFrom:     Boolean(args.from),
-    hasTo:       (args.to?.length ?? 0) > 0,
     hasTarget:   Boolean(args.target || process.env["SCVN_TARGET"]),
     hasGitOp:    args.ignore || args.exclude || args.lfs,
     autoYes:     args.autoYes,
   });
 
-  if (effectiveNamespace === "packages") {
-    await runPackages({
-      verb:    nounVerb("packages"),
-      from:    args.from,
-      to:      args.to,
-      store:   storeOverride,
-      dryRun:  args.dryRun,
-      autoYes: args.autoYes,
-    });
-
-  } else if (effectiveNamespace === "sync") {
+  if (effectiveNamespace === "sync") {
     // Clean break: print the v0.2 migration table and fail loudly.
     printSyncMigrationHint();
     process.exit(1);
@@ -159,7 +113,7 @@ try {
     await runConfig();
 
   } else if (effectiveNamespace === "doctor") {
-    await runDoctor(undefined, { storeOverride });
+    await runDoctor();
 
   } else if (firstSub === "init") {
     if (args.subcommands.length > 1) {

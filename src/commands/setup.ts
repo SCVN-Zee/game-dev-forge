@@ -11,7 +11,7 @@
  * Flow:
  *   1. Resolve target: --target flag → SCVN_TARGET env → clack select.
  *      Under --yes an explicit target is REQUIRED — fail loudly instead of
- *      auto-picking a project (parity with the import --to safety rule).
+ *      auto-picking a project, which could write to the wrong tree.
  *   2. spinner.start → handler with reporter → spinner.stop → outro.
  *
  * Flags:

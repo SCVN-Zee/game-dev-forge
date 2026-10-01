@@ -76,10 +76,9 @@ export interface CapabilitySpec {
   /**
    * A dedicated renderer view instead of the generic launch form: "git" draws
    * the per-op action list plus the live per-submodule ignore=dirty toggles,
-   * "settings" the Config/Doctor tabs, "packages" the Export/Import library,
-   * and "init" the initializer. Omitted → form.
+   * "settings" the Config/Doctor tabs, and "init" the initializer. Omitted → form.
    */
-  page?: "git" | "settings" | "packages" | "init";
+  page?: "git" | "settings" | "init";
 }
 
 /**
@@ -208,35 +207,6 @@ export type SubmoduleIgnoreList =
   | { status: "noSubmodules"; repo: string }
   | { status: "ok"; repo: string; submodules: SubmoduleIgnoreRow[] };
 
-// ---------------------------------------------------------------------------
-// Packages page (one library: add a folder, remove, import)
-// ---------------------------------------------------------------------------
-
-/**
- * Payload of `packages:resolve-source`: a picked folder validated to a stageable
- * package. `ok` carries the project root, the project-root-relative path, and
- * the derived label; `invalid` carries a user-facing reason.
- */
-export type PackagesSourceResult =
-  | { status: "ok"; projectRoot: string; relPath: string; label: string }
-  | { status: "invalid"; picked: string; message: string };
-
-/** One row in the staged package library (payload of `packages:list`). */
-export interface PackageLibraryRow {
-  label: string;
-  relPath: string;
-  /** Human-readable per-package provenance (source @ branch · age · size). */
-  provenance: string;
-  /** Absolute source project root this package was staged from. */
-  sourcePath: string;
-  bytes: number;
-}
-
-/** Payload of `packages:list` / `packages:remove`: the current library. */
-export interface PackagesLibraryModel {
-  packages: PackageLibraryRow[];
-}
-
 /**
  * Build-time tab selection. `SCVN_TABS` (comma-separated capability ids) is
  * injected as the `__SCVN_TABS__` constant by both bundlers (vite + tsup); an
@@ -284,13 +254,6 @@ export const ALL_CAPABILITIES: CapabilitySpec[] = [
     description:
       "Install .gitignore, .git/info/exclude, and/or Git LFS, and toggle ignore=dirty per submodule.",
     page: "git",
-    launch: [],
-  },
-  {
-    id: "packages",
-    label: "Packages",
-    description: "Manage a library of packages: add from a source project, remove, and import into a target.",
-    page: "packages",
     launch: [],
   },
   {

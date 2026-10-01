@@ -95,13 +95,13 @@ function doctorSummary(report: DoctorReport): { text: string; kind: NoticeKind }
 
 function DoctorRow({ report }: { report: DoctorCheckReport }): React.JSX.Element {
   return (
-    <li className="flex items-baseline justify-between gap-3">
+    <li className="grid grid-cols-1 gap-1 rounded-lg px-1 py-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] sm:gap-4">
       <span className="flex min-w-0 items-center gap-2 text-sm">
         {SEVERITY_META[report.severity].icon}
         <span className="truncate">{report.label}</span>
       </span>
       {report.detail ? (
-        <span className="shrink-0 text-right text-xs text-muted-foreground">{report.detail}</span>
+        <span className="min-w-0 break-words text-xs leading-relaxed text-muted-foreground sm:text-right [overflow-wrap:anywhere]">{report.detail}</span>
       ) : null}
     </li>
   );
@@ -276,34 +276,28 @@ export function OnboardingView({ onDone, onSkip }: OnboardingViewProps): React.J
   const continueEnabled = saved || (status?.ready ?? false);
 
   return (
-    <div className="mx-auto w-full max-w-4xl p-6">
-      <Card className="onboarding-card">
-          <CardHeader>
-            <CardTitle id="onboarding-dialog-title">Welcome to Game Dev Forge</CardTitle>
+    <div className="mx-auto flex max-h-[calc(100dvh-5rem)] w-full max-w-xl flex-col">
+      <Card className="onboarding-card min-h-0 gap-0 p-0">
+        <div className="flex min-h-0 flex-col py-4">
+          <CardHeader className="shrink-0 pb-3">
+            <CardTitle id="onboarding-dialog-title">Workspace setup</CardTitle>
             <CardDescription id="onboarding-dialog-description">
               {step === 1 ? (
                 <>
                   {status?.ready
-                    ? "Your projects root is set — adjust it, or continue to the environment checks."
-                    : "First, point the app at the folder that holds your Unity projects."}{" "}
-                  Changes save automatically when you leave this field or press Enter.
+                    ? "Continue with this projects root, or choose another folder."
+                    : "Choose the folder containing your Unity projects."} {" "}
+                  Saves on blur or Enter.
                 </>
               ) : (
-                "Now let's check your environment."
+                "Check the tools your Unity projects depend on."
               )}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <ol className="flex items-center gap-2 text-xs" aria-label="Setup steps">
-              <li className={cn(step === 1 ? "font-medium text-foreground" : "text-muted-foreground")}>
-                1 · Projects root
-              </li>
-              <li aria-hidden className="text-muted-foreground">
-                →
-              </li>
-              <li className={cn(step === 2 ? "font-medium text-foreground" : "text-muted-foreground")}>
-                2 · Environment checks
-              </li>
+          <CardContent className="min-h-0 space-y-3 overflow-y-auto">
+            <ol className="flex flex-wrap gap-x-4 gap-y-1 text-xs" aria-label="Setup steps">
+              <li aria-current={step === 1 ? "step" : undefined} className={cn(step === 1 ? "font-medium text-primary" : "text-muted-foreground")}>1 · Projects root</li>
+              <li aria-current={step === 2 ? "step" : undefined} className={cn(step === 2 ? "font-medium text-primary" : "text-muted-foreground")}>2 · Environment checks</li>
             </ol>
 
             {step === 1 ? (
@@ -408,7 +402,8 @@ export function OnboardingView({ onDone, onSkip }: OnboardingViewProps): React.J
               </>
             )}
 
-            <div className="flex items-center justify-between border-t border-border pt-4">
+          </CardContent>
+            <div className="mx-4 mt-3 flex shrink-0 items-center justify-between border-t border-border pt-3">
               <Button type="button" variant="ghost" onClick={onSkip}>
                 Skip for now
               </Button>
@@ -429,7 +424,7 @@ export function OnboardingView({ onDone, onSkip }: OnboardingViewProps): React.J
                 )}
               </div>
             </div>
-          </CardContent>
+        </div>
       </Card>
     </div>
   );

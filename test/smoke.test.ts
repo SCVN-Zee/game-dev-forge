@@ -24,21 +24,6 @@ describe("gdf smoke", () => {
     expect(stdout).toContain("Usage:");
   });
 
-  it("help documents the grammar (packages noun + direct ops + git group)", async () => {
-    const { stdout } = await execa(BIN, ["-h"]);
-    for (const token of [
-      "packages",
-      "fork", "git", "ignore-dirty",
-      "--ignore", "--exclude", "--lfs",
-      "--from", "--to", "--target",
-    ]) {
-      expect(stdout).toContain(token);
-    }
-    // toolkit was removed — its noun must not appear anywhere in help.
-    expect(stdout).not.toContain("toolkit");
-    expect(stdout).not.toContain("sync subcommands");
-    expect(stdout).not.toContain("setup subcommands");
-  });
 
   it("gdf setup <anything> exits 1 with the v0.3 migration table", async () => {
     const { stderr, exitCode } = await execa(BIN, ["setup", "fork"], { reject: false });
@@ -92,15 +77,9 @@ describe("gdf smoke", () => {
   it("bare gdf all exits 1 with the migration table", async () => {
     const { stderr, exitCode } = await execa(BIN, ["all"], { reject: false });
     expect(exitCode).toBe(1);
-    expect(stderr).toContain("gdf sync was replaced in v0.2");
+    expect(stderr).toContain("gdf sync and gdf all were removed in v0.2.");
   });
 
-  it("unknown noun verb exits 1 with usage", async () => {
-    const { stderr, exitCode } = await execa(BIN, ["packages", "exprot"], { reject: false });
-    expect(exitCode).toBe(1);
-    expect(stderr).toContain("Unknown packages subcommand: exprot");
-    expect(stderr).toContain("gdf packages [add|remove|import|export]");
-  });
 
   it("unknown command exits 1 (typo'd noun must not look like success)", async () => {
     const { stderr, exitCode } = await execa(BIN, ["sycn", "all"], { reject: false });
@@ -108,17 +87,5 @@ describe("gdf smoke", () => {
     expect(stderr).toContain("Unknown command: sycn");
   });
 
-  it("removed commands (toolkit / import / export) exit 1 as unknown", async () => {
-    for (const cmd of ["toolkit", "import", "export"]) {
-      const { stderr, exitCode } = await execa(BIN, [cmd], { reject: false });
-      expect(exitCode).toBe(1);
-      expect(stderr).toContain(`Unknown command: ${cmd}`);
-    }
-  });
 
-  it("-y without a verb on a noun exits 1 (no silent menu cancel)", async () => {
-    const { stderr, exitCode } = await execa(BIN, ["packages", "-y"], { reject: false });
-    expect(exitCode).toBe(1);
-    expect(stderr).toContain("--yes requires an explicit verb");
-  });
 });

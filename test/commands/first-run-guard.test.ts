@@ -2,11 +2,9 @@
  * test/commands/first-run-guard.test.ts — Unit tests for the startup first-run
  * config guard: the needsProjectsRoot predicate and ensureProjectsRootConfigured.
  *
- * The predicate is precise: it returns false for invocations dispatch will reject
- * as usage errors (unknown verbs, trailing args, bare-noun-under-`-y`) and for the
- * migration-hint namespaces, so those keep their own errors instead of the config
- * hint. The guard is fully dependency-injected (resolveRoot / isDir / runConfig /
- * isTTY / fail / log) so no real TTY, fs, editor, or process.exit is needed.
+ * The predicate returns false for usage errors and migration hints, so commands
+ * keep their specific errors instead of the config hint. Injected dependencies
+ * keep tests independent of a real terminal, filesystem, or editor.
  */
 
 import { describe, it, expect, vi } from "vitest";
@@ -20,38 +18,12 @@ import { MISSING_PROJECTS_ROOT_MESSAGE } from "../../src/commands/shared/project
 
 function inv(over: Partial<Invocation> = {}): Invocation {
   return {
-    namespace: null, subcommands: [], hasFrom: false, hasTo: false, hasTarget: false, autoYes: false,
+    namespace: null, subcommands: [], hasTarget: false, autoYes: false,
     ...over,
   };
 }
 
 describe("needsProjectsRoot", () => {
-  it("packages export needs root unless --from", () => {
-    expect(needsProjectsRoot(inv({ namespace: "packages", subcommands: ["export"] }))).toBe(true);
-    expect(needsProjectsRoot(inv({ namespace: "packages", subcommands: ["export"], hasFrom: true }))).toBe(false);
-  });
-
-  it("packages import needs root unless --to", () => {
-    expect(needsProjectsRoot(inv({ namespace: "packages", subcommands: ["import"] }))).toBe(true);
-    expect(needsProjectsRoot(inv({ namespace: "packages", subcommands: ["import"], hasTo: true }))).toBe(false);
-  });
-
-  it("bare packages verb menu needs root, except under -y (usage error)", () => {
-    expect(needsProjectsRoot(inv({ namespace: "packages", subcommands: [] }))).toBe(true);
-    expect(needsProjectsRoot(inv({ namespace: "packages", subcommands: [], autoYes: true }))).toBe(false);
-  });
-
-  it("unknown noun verb does not need root (dispatch reports usage)", () => {
-    expect(needsProjectsRoot(inv({ namespace: "packages", subcommands: ["exprot"] }))).toBe(false);
-  });
-
-  it("removed import/export namespaces never need root (dispatch reports unknown command)", () => {
-    // `gdf import` / `gdf export` are no longer namespaces — the first positional
-    // falls to subcommands and dispatch fails loudly, so the guard must not intercept.
-    expect(needsProjectsRoot(inv({ subcommands: ["import"] }))).toBe(false);
-    expect(needsProjectsRoot(inv({ subcommands: ["export"] }))).toBe(false);
-    expect(needsProjectsRoot(inv({ subcommands: ["import", "all"] }))).toBe(false);
-  });
 
   it("fork never needs root (Fork.app prefs only — no project scan)", () => {
     expect(needsProjectsRoot(inv({ subcommands: ["fork"] }))).toBe(false);
@@ -92,8 +64,8 @@ describe("needsProjectsRoot", () => {
     for (const c of [
       inv({ namespace: "doctor" }),
       inv({ namespace: "config" }),
-      inv({ subcommands: ["pack"] }),
-      inv({ subcommands: ["pack", "extra"] }),
+      inv({ subcommands: ["unknown-cmd"] }),
+      inv({ subcommands: ["unknown-cmd", "extra"] }),
       inv({ subcommands: ["sycn", "all"] }), // unknown command
       inv(),
     ]) {
@@ -104,7 +76,7 @@ describe("needsProjectsRoot", () => {
 
 describe("ensureProjectsRootConfigured", () => {
   const NEEDS: Invocation = {
-    namespace: "packages", subcommands: ["export"], hasFrom: false, hasTo: false, hasTarget: false, autoYes: false,
+    namespace: null, subcommands: ["ignore-dirty"], hasTarget: false, autoYes: false,
   };
 
   function mkDeps(over: Partial<GuardDeps> = {}): GuardDeps {

@@ -1,9 +1,9 @@
 /**
  * scripts/pack.ts — Maintainer build-and-bundle entry (replaces the old `gdf pack` command).
  *
- * Produces a self-contained deliverable: the built CLI (bin/dist/templates) + a copy of
- * ~/.scvn/store + a pinned Node runtime → pkg/gdf-bundle-<version>.zip. A teammate unzips it and
- * `gdf packages import` works with no source project AND no Node install. Run via the Makefile
+ * Produces a self-contained CLI deliverable (bin/dist/templates) + a pinned Node runtime
+ * → pkg/gdf-bundle-<version>.zip. A teammate unzips it and can run the CLI without a source
+ * project or a Node install. Run via the Makefile
  * (`make pack` / `make pack-no-node`) — it is a producer action, never a shipped user command.
  *
  * Non-interactive by design: no confirm, no dry-run. Fail-fast ordering mirrors the old flow —
@@ -23,7 +23,6 @@ import { mkdtemp, mkdir, rm, access, stat } from "node:fs/promises";
 import { getVersion } from "../src/util/app-info.js";
 import { duSize, formatBytes } from "../src/util/du-size.js";
 import { shortenPath } from "../src/util/paths.js";
-import { readPackagesStoreMeta } from "../src/features/store/index.js";
 import { resolveBundleSourcePaths, bundleArchivePath } from "../src/features/pack/bundle-paths.js";
 import { assembleBundle } from "../src/features/pack/assemble-bundle.js";
 import { createZip } from "../src/services/zip.js";
@@ -67,17 +66,8 @@ export async function runPackBundle(opts: PackBundleOpts = {}): Promise<number> 
     return 1;
   }
 
-  // Store provenance — tolerant of an empty store (mirrors import): a store with no staged
-  // packages still bundles the CLI, but warn loudly so it is never silent.
-  const packagesMeta = await readPackagesStoreMeta(paths.userStoreDir).catch(() => null);
-  const hasPackages = Boolean(packagesMeta && packagesMeta.packages.length > 0);
-  if (!hasPackages) {
-    console.warn("pack: store is empty — the bundle will ship the CLI with no staged assets");
-  }
-
-  const version    = getVersion();
-  const archive    = bundleArchivePath(paths.outDir, version);
-  const storeBytes = await duSize(paths.userStoreDir);
+  const version = getVersion();
+  const archive = bundleArchivePath(paths.outDir, version);
 
   // Resolve the bundled-Node arch up front; currentDarwinArch throws only on a non-arm64/x64 host.
   let nodeArch: DarwinArch | undefined;
@@ -117,7 +107,6 @@ export async function runPackBundle(opts: PackBundleOpts = {}): Promise<number> 
     [
       `Building Game Dev Forge bundle v${version}`,
       nodeLine,
-      `store:   ${shortenPath(paths.userStoreDir)}  (${formatBytes(storeBytes)})`,
       `archive: ${shortenPath(archive)}`,
     ].join("\n"),
   );
@@ -126,7 +115,6 @@ export async function runPackBundle(opts: PackBundleOpts = {}): Promise<number> 
   try {
     await assembleBundle({
       installRoot:     paths.installRoot,
-      userStoreParent: paths.userStoreParent,
       stagingDir:      staging,
       version,
       nodeBinPath,

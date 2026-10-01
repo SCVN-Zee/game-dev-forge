@@ -26,7 +26,7 @@ import { ProjectsRootError } from "../../ui/errors.js";
 
 /** Message for the backstop / first-run guard when no projects root is configured. */
 export const MISSING_PROJECTS_ROOT_MESSAGE =
-  "SCVN_PROJECTS_ROOT is not set or points to a missing directory — run `gdf config`, set the env var, or pass --from/--to/--target";
+  "SCVN_PROJECTS_ROOT is not set or points to a missing directory — run gdf config, set the env var, or pass --target";
 
 /**
  * Where a resolved projects root came from. `"env"` means the current
@@ -95,13 +95,12 @@ export async function getProjectsRoot(deps: GetProjectsRootDeps = {}): Promise<s
  * When `opts.editorVersion` is given (fork's editor pick), projects whose
  * parsed Unity version differs get a version-mismatch hint prefix.
  *
- * `opts.value: "projectRoot"` picks the option value's path shape — the
- * default `p.path` is the Assets dir (git/setup), the packages flow keys
- * on the project root.
+ * Select values always use the project's Assets path, consumed by the shared
+ * setup picker.
  */
 export function projectsToOptions(
   projects: Project[],
-  opts: { editorVersion?: string; value?: "path" | "projectRoot" } = {},
+  opts: { editorVersion?: string } = {},
 ): PromptOption<string>[] {
   return projects.map((p) => {
     const scene = p.scene && p.scene !== p.name ? p.scene : undefined;
@@ -111,7 +110,7 @@ export function projectsToOptions(
         ? `version mismatch (project ${p.projectVersion}, editor ${opts.editorVersion})`
         : undefined;
     return {
-      value: (opts.value ?? "path") === "projectRoot" ? p.projectRoot : p.path,
+      value: p.path,
       label: `${p.name}${scene ? ` (${scene})` : ""}${p.branch ? ` · ${p.branch}` : ""}`,
       hint: mismatch ? `${mismatch} · ${agePart}` : agePart,
     };

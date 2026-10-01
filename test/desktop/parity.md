@@ -30,9 +30,7 @@ the packaged app, then `diff -r` the touched files. Expect zero diff.
 2. **git** — `gdf git --ignore --exclude --lfs --target <fixture>/Assets` vs the
    Git capability with the same checkboxes + folder. Diff `.gitignore`,
    `.git/info/exclude`, `.gitattributes`.
-3. **packages** — `gdf packages` export from a source project vs the Packages
-   capability (export). Diff the produced snapshot.
-4. **fork** *(macOS with Fork.app + Beyond Compare + Unity)* — `gdf fork -n` vs
+3. **fork** *(macOS with Fork.app + Beyond Compare + Unity)* — `gdf fork -n` vs
    the Fork form with Dry run checked. Both report the same pending writes.
 
 ## Headless launch smoke (CI-friendly)

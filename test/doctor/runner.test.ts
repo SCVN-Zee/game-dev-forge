@@ -115,15 +115,4 @@ describe("runner.run()", () => {
     expect(result.exitCode).toBe(1);
   });
 
-  it("passes the context to each check's run()", async () => {
-    const seen: unknown[] = [];
-    const spy: Check = {
-      id: "spy", label: "spy",
-      run: async (ctx) => { seen.push(ctx); return { severity: "pass" }; },
-    };
-
-    await run([spy], { storeOverride: "/X" });
-
-    expect(seen).toEqual([{ storeOverride: "/X" }]);
-  });
 });

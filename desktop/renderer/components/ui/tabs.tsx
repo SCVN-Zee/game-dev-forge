@@ -60,7 +60,7 @@ export function TabsList({ className, children }: { className?: string; children
       data-slot="tabs-list"
       role="tablist"
       className={cn(
-        "inline-flex h-9 w-fit items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground",
+        "inline-flex min-h-11 w-fit items-center justify-center gap-1 rounded-xl border border-border bg-card p-1 text-muted-foreground",
         className,
       )}
     >
@@ -88,9 +88,9 @@ export function TabsTrigger({
       data-state={active ? "active" : "inactive"}
       onClick={() => setValue(value)}
       className={cn(
-        "inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1 text-sm font-medium whitespace-nowrap outline-none transition-[color,background-color,box-shadow] duration-150 ease-[var(--ease-out)]",
+        "inline-flex min-h-9 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap outline-none transition-[color,background-color,box-shadow] duration-150 ease-[var(--ease-out)]",
         "focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-        "data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+        "data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-xs",
         className,
       )}
     >

@@ -8,7 +8,7 @@
  */
 
 import { CHECKS } from "./checks.js";
-import type { Check, CheckContext, CheckResult, Severity } from "./checks.js";
+import type { Check, CheckResult, Severity } from "./checks.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -36,9 +36,9 @@ export interface RunnerResult {
  * Run all checks in parallel. Safe to call from both CLI and tests.
  * Accepts an optional overrides list for unit-testing with mocked checks.
  */
-export async function run(checks: Check[] = CHECKS, ctx: CheckContext = {}): Promise<RunnerResult> {
+export async function run(checks: Check[] = CHECKS): Promise<RunnerResult> {
   const settled = await Promise.allSettled(
-    checks.map((check) => check.run(ctx)),
+    checks.map((check) => check.run()),
   );
 
   const reports: CheckReport[] = settled.map((outcome, index) => {

@@ -11,6 +11,7 @@ import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { LoaderCircle } from "lucide-react";
 
+import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -28,8 +29,7 @@ export interface RunOpViewProps {
   onBack: () => void;
 }
 
-const promptShellClass =
-  "space-y-3 rounded-lg border border-border bg-muted/30 p-4 animate-in fade-in zoom-in-95 duration-200 ease-[var(--ease-out)]";
+const promptShellClass = "space-y-2";
 
 export function RunOpView(props: RunOpViewProps): React.JSX.Element {
   const { lines, status, prompt, cancelling, start, resolvePrompt, cancel } = useHostRun();
@@ -52,41 +52,51 @@ export function RunOpView(props: RunOpViewProps): React.JSX.Element {
   const running = status === "running" || status === "idle";
 
   return (
-    <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col p-6">
-      <Card className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden py-4">
-        <div className="flex items-center gap-3 px-6">
-          <h2 className="text-lg font-semibold tracking-tight">{props.title}</h2>
-          <StatusBadge status={status} />
-          <div className="ml-auto flex gap-2">
+    <div className="workspace-page flex h-full min-h-0 flex-col gap-3 p-4 sm:p-5">
+      <PageHeader
+        title={props.title}
+        actions={
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <StatusBadge status={status} />
             {running ? (
-              <Button type="button" variant="outline" disabled={cancelling} onClick={cancel}>
+              <Button type="button" size="sm" variant="outline" disabled={cancelling} onClick={cancel}>
                 {cancelling ? "Cancelling…" : "Cancel"}
               </Button>
             ) : (
-              <Button type="button" onClick={props.onBack}>
+              <Button type="button" size="sm" onClick={props.onBack}>
                 Back
               </Button>
             )}
           </div>
-        </div>
-
+        }
+      />
+      <Card className="flex min-h-0 flex-1 flex-col gap-0 overflow-hidden p-0">
         {prompt !== null ? (
-          <div className="px-6">
+          <section
+            aria-label="Operation prompt"
+            className="max-h-[45%] min-h-0 shrink-0 overflow-y-auto border-b border-border px-4 py-3"
+          >
             <PromptControls key={prompt.promptId} spec={prompt.prompt} onResolve={resolvePrompt} />
-          </div>
+          </section>
         ) : null}
-
-        <div className="flex min-h-0 flex-1 flex-col px-6">
+        <div className="flex min-h-0 flex-1 flex-col p-3">
           <pre
             ref={logRef}
-            className="font-mono text-xs bg-muted/40 rounded-md border p-3 overflow-auto min-h-0 flex-1"
+            aria-label="Operation output"
+            className="min-h-0 min-w-0 flex-1 overflow-auto rounded-lg border border-border bg-muted/30 p-3 font-mono text-xs leading-relaxed"
             aria-live="polite"
           >
-            {lines.map((line, i) => (
-              <span key={i} className={cn("block", logLineClass(line.cls))}>
-                {line.text}
+            {lines.length > 0 ? (
+              lines.map((line, i) => (
+                <span key={i} className={cn("block", logLineClass(line.cls))}>
+                  {line.text}
+                </span>
+              ))
+            ) : (
+              <span className="text-muted-foreground">
+                {running ? "Waiting for output…" : "No output was produced."}
               </span>
-            ))}
+            )}
           </pre>
         </div>
       </Card>
@@ -173,7 +183,10 @@ function SelectPrompt({
       <p className="text-sm text-foreground">{prompt.message}</p>
       <div role="radiogroup" aria-label={prompt.message} className="space-y-2">
         {prompt.options.map((opt, i) => (
-          <Label key={opt.value} className="flex cursor-pointer items-center gap-2 font-normal">
+          <Label
+            key={opt.value}
+            className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background/60 px-3 py-2.5 font-normal transition-colors has-[:checked]:border-primary/40 has-[:checked]:bg-primary/5 hover:bg-background"
+          >
             <input
               type="radio"
               name="run-op-select"
@@ -247,7 +260,10 @@ function MultiselectPrompt({
       <p className="text-sm text-foreground">{prompt.message}</p>
       <div role="group" aria-label={prompt.message} className="space-y-2">
         {prompt.options.map((opt, i) => (
-          <Label key={opt.value} className="flex cursor-pointer items-center gap-2 font-normal">
+          <Label
+            key={opt.value}
+            className="flex cursor-pointer items-start gap-3 rounded-lg border border-border bg-background/60 px-3 py-2.5 font-normal transition-colors has-[:checked]:border-primary/40 has-[:checked]:bg-primary/5 hover:bg-background"
+          >
             <input
               type="checkbox"
               value={opt.value}

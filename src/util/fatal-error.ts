@@ -1,13 +1,13 @@
 /**
  * util/fatal-error.ts — Turn an escaped throw into a CLI error line.
  *
- * cli.tsx is a top-level-await script: a rejected `await runPackages(...)` in an
+ * cli.tsx is a top-level-await script: a rejected command invocation in an
  * ESM entry module is NOT delivered to an `unhandledRejection` listener (verified
  * against Node 24) — Node prints the stack and exits 1. So the net has to be
  * `uncaughtException`, with `unhandledRejection` added for stray floating promises.
  *
  * Expected, user-facing failures are prefixed `gdf:` by whoever threw them
- * ("gdf: package catalog not found at …"). Those print as a single line. Anything
+ * ("gdf: project directory not found at …"). Those print as a single line. Anything
  * else is a programming error and keeps its full stack — prettifying a TypeError
  * would just hide the bug.
  */

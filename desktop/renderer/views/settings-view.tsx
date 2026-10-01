@@ -7,10 +7,11 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { FolderOpen, LoaderCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, FolderOpen, LoaderCircle } from "lucide-react";
 
+import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,16 +27,21 @@ import { cn } from "@/lib/utils";
 
 export function SettingsView(): React.JSX.Element {
   return (
-    <div className="mx-auto w-full max-w-4xl p-6">
-      <Tabs defaultValue="config">
-        <TabsList>
-          <TabsTrigger value="config">Config</TabsTrigger>
-          <TabsTrigger value="doctor">Doctor</TabsTrigger>
+    <div className="workspace-page flex h-full min-h-0 flex-col gap-3 p-4 sm:p-5">
+      <PageHeader title="Settings" />
+      <Tabs defaultValue="config" className="flex min-h-0 flex-1 flex-col gap-2">
+        <TabsList className="h-8 w-fit shrink-0 gap-1 rounded-lg border border-border bg-muted/30 p-1">
+          <TabsTrigger value="config" className="h-6 rounded-md px-3 text-xs">
+            Config
+          </TabsTrigger>
+          <TabsTrigger value="doctor" className="h-6 rounded-md px-3 text-xs">
+            Doctor
+          </TabsTrigger>
         </TabsList>
-        <TabsContent value="config">
+        <TabsContent value="config" className="m-0 flex min-h-0 flex-1 flex-col">
           <ConfigPanel />
         </TabsContent>
-        <TabsContent value="doctor">
+        <TabsContent value="doctor" className="m-0 flex min-h-0 flex-1 flex-col">
           <DoctorPanel />
         </TabsContent>
       </Tabs>
@@ -142,89 +148,83 @@ function ConfigPanel(): React.JSX.Element {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Config</CardTitle>
-        <CardDescription>
-          Set the Unity projects root used by the project pickers. Changes save automatically when you leave this
-          field or press Enter.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <Card className="gap-0 p-0">
+      <CardContent className="space-y-3 p-4">
         {loading ? (
-          <div className="flex items-center gap-2 py-4">
+          <div className="flex items-center gap-2 py-1 text-sm text-muted-foreground" role="status">
             <LoaderCircle className="size-4 animate-spin" />
-            <p className="text-sm text-muted-foreground" role="status">
-              Loading…
-            </p>
+            Loading settings…
           </div>
         ) : (
           <>
-            <div className="space-y-2">
-              <Label htmlFor="settings-projects-root">Unity projects root</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="settings-projects-root"
-                  className="flex-1"
-                  value={projectsRoot}
-                  placeholder="/path/to/your/Unity/Projects"
-                  onChange={(event) => {
-                    dirty.current = true;
-                    saveSeq.current += 1;
-                    setProjectsRoot(event.target.value);
-                    setStatus(null);
-                  }}
-                  onBlur={(event) => {
-                    if (!pickerPending.current) commitRoot(event.currentTarget.value);
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.preventDefault();
-                      commitRoot(event.currentTarget.value);
-                    }
-                  }}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onMouseDown={() => {
-                    pickerPending.current = true;
-                  }}
-                  onClick={() => {
-                    pickerPending.current = true;
-                    void pickDirectory({ kind: "dir", title: "Unity projects root" })
-                      .then((picked) => {
-                        if (picked === null) return;
-                        dirty.current = true;
-                        saveSeq.current += 1;
-                        setProjectsRoot(picked);
-                        setStatus(null);
-                        commitRoot(picked);
-                      })
-                      .catch((err: unknown) => {
-                        setStatus({ text: err instanceof Error ? err.message : String(err), kind: "error" });
-                      })
-                      .finally(() => {
-                        pickerPending.current = false;
-                      });
-                  }}
-                >
-                  <FolderOpen />
-                  Browse…
-                </Button>
-              </div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <Label htmlFor="settings-projects-root" className="shrink-0 text-sm font-medium sm:w-40">
+                Unity projects root
+              </Label>
+              <Input
+                id="settings-projects-root"
+                className="min-w-0 flex-1 font-mono text-sm"
+                value={projectsRoot}
+                placeholder="/path/to/your/Unity/Projects"
+                onChange={(event) => {
+                  dirty.current = true;
+                  saveSeq.current += 1;
+                  setProjectsRoot(event.target.value);
+                  setStatus(null);
+                }}
+                onBlur={(event) => {
+                  if (!pickerPending.current) commitRoot(event.currentTarget.value);
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    commitRoot(event.currentTarget.value);
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onMouseDown={() => {
+                  pickerPending.current = true;
+                }}
+                onClick={() => {
+                  pickerPending.current = true;
+                  void pickDirectory({ kind: "dir", title: "Unity projects root" })
+                    .then((picked) => {
+                      if (picked === null) return;
+                      dirty.current = true;
+                      saveSeq.current += 1;
+                      setProjectsRoot(picked);
+                      setStatus(null);
+                      commitRoot(picked);
+                    })
+                    .catch((err: unknown) => {
+                      setStatus({ text: err instanceof Error ? err.message : String(err), kind: "error" });
+                    })
+                    .finally(() => {
+                      pickerPending.current = false;
+                    });
+                }}
+              >
+                <FolderOpen />
+                Browse…
+              </Button>
             </div>
-            <div className="flex items-center gap-3" aria-live="polite">
+            <div className="flex min-h-5 flex-wrap items-center gap-x-3 gap-y-1" aria-live="polite">
               {saving ? (
-                <span className="text-sm text-muted-foreground" role="status">
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground" role="status">
+                  <LoaderCircle className="size-3.5 animate-spin" />
                   Saving…
                 </span>
               ) : null}
               {status ? (
                 <span
-                  className={cn("text-sm", STATUS_CLASS[status.kind])}
+                  className={cn("flex items-center gap-1.5 text-xs", STATUS_CLASS[status.kind])}
                   role={status.kind === "error" ? "alert" : "status"}
                 >
+                  {status.kind === "success" ? <CheckCircle2 className="size-3.5" /> : null}
+                  {status.kind === "error" ? <AlertCircle className="size-3.5" /> : null}
                   {status.text}
                 </span>
               ) : null}
@@ -247,43 +247,44 @@ function DoctorPanel(): React.JSX.Element {
   }, [lines.length]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Doctor</CardTitle>
-        <CardDescription>Check git, rsync, Fork, Unity, and other tooling.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex items-center gap-3">
-          <Button type="button" disabled={running} onClick={() => start("doctor")}>
-            {running ? (
-              <>
-                <LoaderCircle className="size-4 animate-spin" />
-                Running…
-              </>
-            ) : (
-              "Run environment checks"
-            )}
+    <Card className="flex min-h-0 flex-1 flex-col gap-0 overflow-hidden p-0">
+      <CardContent className="flex min-h-0 flex-1 flex-col gap-3 p-3 sm:p-4">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
+            <span className="text-sm font-medium">Environment checks</span>
+            <span
+              className={cn(
+                "text-xs",
+                status === "failed" ? "text-destructive" : status === "done" ? "text-success" : "text-muted-foreground",
+              )}
+              role={status === "failed" ? "alert" : "status"}
+              aria-live="polite"
+            >
+              {running ? "Checking…" : status === "done" ? "Checks complete." : status === "failed" ? "Checks failed." : "Ready."}
+            </span>
+          </div>
+          <Button type="button" size="sm" disabled={running} onClick={() => start("doctor")}>
+            {running ? <LoaderCircle className="size-4 animate-spin" /> : null}
+            {running ? "Running…" : "Run checks"}
           </Button>
-          {status === "done" ? <span className="text-sm text-success">Done</span> : null}
-          {status === "failed" ? <span className="text-sm text-destructive">Failed</span> : null}
         </div>
-        {lines.length > 0 ? (
-          <pre
-            ref={logRef}
-            className="font-mono text-xs bg-muted/40 rounded-md border p-3 max-h-[60vh] overflow-auto"
-            aria-live="polite"
-          >
-            {lines.map((line, i) => (
+        <pre
+          ref={logRef}
+          className="min-h-0 min-w-0 flex-1 overflow-auto rounded-lg border border-border bg-muted/30 p-3 font-mono text-xs leading-relaxed"
+          aria-live="polite"
+        >
+          {lines.length > 0 ? (
+            lines.map((line, i) => (
               <span key={i} className={cn("block", logLineClass(line.cls))}>
                 {line.text}
               </span>
-            ))}
-          </pre>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            Run the checks to see your environment status.
-          </p>
-        )}
+            ))
+          ) : (
+            <span className="text-muted-foreground">
+              {running ? "Waiting for diagnostic output…" : status === "done" || status === "failed" ? "No diagnostic output." : "Run checks to see output."}
+            </span>
+          )}
+        </pre>
       </CardContent>
     </Card>
   );

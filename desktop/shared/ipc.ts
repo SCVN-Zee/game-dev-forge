@@ -162,12 +162,6 @@ export interface ScvnBridge {
    * forms). Resolves to the chosen path, or null when cancelled.
    */
   pickDirectory(options?: { kind?: "dir" | "path"; title?: string; defaultPath?: string }): Promise<string | null>;
-  /**
-   * Open a native folder picker that allows multi-selection (⌘/shift-click).
-   * Resolves to every chosen path, or null when cancelled / nothing chosen.
-   */
-  pickDirectories(options?: { kind?: "dir" | "path"; title?: string; defaultPath?: string }): Promise<string[] | null>;
-
   /** Open a native Save As dialog outside any run session. */
   pickSaveFile(options?: { title?: string; defaultPath?: string }): Promise<string | null>;
 }

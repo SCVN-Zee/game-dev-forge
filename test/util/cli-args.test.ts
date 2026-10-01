@@ -75,9 +75,9 @@ describe("parseArgv — namespace extraction", () => {
   });
 
   it("extracts 'sync' and rest as subcommands", () => {
-    const r = parseArgv(["sync", "toolkit", "packages"]);
+    const r = parseArgv(["sync", "toolkit", "asset"]);
     expect(r.namespace).toBe("sync");
-    expect(r.subcommands).toEqual(["toolkit", "packages"]);
+    expect(r.subcommands).toEqual(["toolkit", "asset"]);
   });
 
   it("'fork-setup' is no longer a known namespace — falls to subcommands", () => {
@@ -149,85 +149,11 @@ describe("parseArgv — setup namespace", () => {
   });
 });
 
-describe("parseArgv — noun namespaces", () => {
-  it("extracts 'packages' as namespace", () => {
-    const r = parseArgv(["packages"]);
-    expect(r.namespace).toBe("packages");
-    expect(r.subcommands).toEqual([]);
-  });
-
-  it("extracts noun verb as subcommand: packages export", () => {
-    const r = parseArgv(["packages", "export"]);
-    expect(r.namespace).toBe("packages");
-    expect(r.subcommands).toEqual(["export"]);
-  });
-
-  it("'import' is no longer a namespace — falls to subcommands", () => {
-    const r = parseArgv(["import", "all"]);
-    expect(r.namespace).toBeNull();
-    expect(r.subcommands).toEqual(["import", "all"]);
-  });
-
-  it("'export' is no longer a namespace — falls to subcommands", () => {
-    const r = parseArgv(["export"]);
-    expect(r.namespace).toBeNull();
-    expect(r.subcommands).toEqual(["export"]);
-  });
-
-  it("bare 'all' is NOT a namespace — falls to subcommands", () => {
+describe("parseArgv — direct command positionals", () => {
+  it("keeps bare all as an un-namespaced command", () => {
     const r = parseArgv(["all"]);
     expect(r.namespace).toBeNull();
     expect(r.subcommands).toEqual(["all"]);
-  });
-});
-
-describe("parseArgv — value flags --from / --to", () => {
-  it("parses --from with its value", () => {
-    const r = parseArgv(["packages", "export", "--from", "/projects/hub/Assets"]);
-    expect(r.from).toBe("/projects/hub/Assets");
-    expect(r.subcommands).toEqual(["export"]);
-    expect(r.warnings).toEqual([]);
-  });
-
-  it("collects repeated --to values in order", () => {
-    const r = parseArgv(["packages", "import", "--to", "/a", "--to", "/b"]);
-    expect(r.to).toEqual(["/a", "/b"]);
-  });
-
-  it("--to without a value warns and is ignored", () => {
-    const r = parseArgv(["packages", "import", "--to"]);
-    expect(r.to).toEqual([]);
-    expect(r.warnings).toHaveLength(1);
-    expect(r.warnings[0]).toContain("--to");
-  });
-
-  it("--to followed by a flag does not swallow the flag", () => {
-    const r = parseArgv(["packages", "import", "--to", "-n"]);
-    expect(r.to).toEqual([]);
-    expect(r.dryRun).toBe(true);
-    expect(r.warnings).toHaveLength(1);
-  });
-
-  it("value flags mix with boolean flags and positionals", () => {
-    const r = parseArgv(["-y", "packages", "import", "--to", "/a", "-n"]);
-    expect(r.namespace).toBe("packages");
-    expect(r.subcommands).toEqual(["import"]);
-    expect(r.autoYes).toBe(true);
-    expect(r.dryRun).toBe(true);
-    expect(r.to).toEqual(["/a"]);
-  });
-
-  it("supports the equals form: --from=/x and --to=/y", () => {
-    const r = parseArgv(["packages", "import", "--from=/x", "--to=/y", "--to=/z"]);
-    expect(r.from).toBe("/x");
-    expect(r.to).toEqual(["/y", "/z"]);
-    expect(r.warnings).toEqual([]);
-  });
-
-  it("equals form with empty value warns and is ignored", () => {
-    const r = parseArgv(["packages", "import", "--to="]);
-    expect(r.to).toEqual([]);
-    expect(r.warnings).toHaveLength(1);
   });
 });
 
@@ -262,53 +188,6 @@ describe("parseArgv — value flag --target", () => {
   it("repeated --target keeps the last value", () => {
     const r = parseArgv(["gitexclude", "--target", "/a", "--target", "/b"]);
     expect(r.target).toBe("/b");
-  });
-});
-
-describe("parseArgv — value flag --store", () => {
-  it("parses --store with its value", () => {
-    const r = parseArgv(["packages", "export", "--store", "/bundle/store"]);
-    expect(r.store).toBe("/bundle/store");
-    expect(r.subcommands).toEqual(["export"]);
-    expect(r.warnings).toEqual([]);
-  });
-
-  it("supports the equals form: --store=/path", () => {
-    const r = parseArgv(["packages", "import", "--store=/bundle/store"]);
-    expect(r.store).toBe("/bundle/store");
-    expect(r.warnings).toEqual([]);
-  });
-
-  it("--store at end of argv warns and is ignored", () => {
-    const r = parseArgv(["packages", "export", "--store"]);
-    expect(r.store).toBeUndefined();
-    expect(r.warnings).toHaveLength(1);
-    expect(r.warnings[0]).toContain("--store");
-  });
-
-  it("--store followed by a flag does not swallow the flag", () => {
-    const r = parseArgv(["packages", "export", "--store", "-n"]);
-    expect(r.store).toBeUndefined();
-    expect(r.dryRun).toBe(true);
-    expect(r.warnings).toHaveLength(1);
-  });
-
-  it("equals form with empty value warns and is ignored", () => {
-    const r = parseArgv(["packages", "export", "--store="]);
-    expect(r.store).toBeUndefined();
-    expect(r.warnings).toHaveLength(1);
-  });
-
-  it("repeated --store keeps the last value", () => {
-    const r = parseArgv(["packages", "import", "--store", "/a", "--store", "/b"]);
-    expect(r.store).toBe("/b");
-  });
-
-  it("mixes --store with other value + boolean flags", () => {
-    const r = parseArgv(["-y", "packages", "import", "--store", "/s", "--to", "/t"]);
-    expect(r.store).toBe("/s");
-    expect(r.to).toEqual(["/t"]);
-    expect(r.autoYes).toBe(true);
   });
 });
 

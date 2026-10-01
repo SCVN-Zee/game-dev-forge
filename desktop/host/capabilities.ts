@@ -1,5 +1,5 @@
 /**
- * desktop/host/capabilities.ts — Registry entries for the seven gdf commands.
+ * desktop/host/capabilities.ts — Registry entries for desktop commands.
  *
  * Each entry builds a GUI PromptAdapter + OutputAdapter from the invocation's
  * session, parses the renderer's launch values into the handler's arg shape, and
@@ -15,7 +15,6 @@ import { runConfigExecute } from "../../src/commands/config.js";
 import { runDoctor } from "../../src/commands/doctor.js";
 import { forkPreflight, forkExecute, type ForkPreflight } from "../../src/commands/fork.js";
 import { runGitCommand } from "../../src/commands/git.js";
-import { runPackages } from "../../src/commands/packages.js";
 import { ignoreDirtyList, ignoreDirtySet } from "./ignore-dirty.js";
 import { discoverSetupTargetsRich } from "../../src/commands/shared/select-setup-target.js";
 import { templatesRead, templatesWrite, templatesCreate, templatesSelect, templatesDelete } from "./templates.js";
@@ -31,14 +30,10 @@ import { createGuiOutput } from "./gui-output.js";
 import type {
   FormModel,
   LaunchField,
-  PackagesSourceResult,
-  PackagesLibraryModel,
   ConfigStatus,
   DoctorReport,
 } from "../shared/commands.js";
 import path from "node:path";
-import { readPackagesStoreMeta, formatPackageProvenance, resolveEffectiveStoreDir } from "../../src/features/store/index.js";
-import { removePackages, resolveAddFolder } from "../../src/features/packages/index.js";
 import { initializeProject, parseInitLayout } from "../../src/features/init/index.js";
 import { readFile, rename, rm, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
@@ -56,38 +51,9 @@ function str(record: Record<string, unknown>, key: string): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
-/** Read a non-empty string field that may also arrive as a string[] (multi-folder add `from`). */
-function strOrList(record: Record<string, unknown>, key: string): string | string[] | undefined {
-  const value = record[key];
-  if (typeof value === "string" && value.length > 0) return value;
-  const list = strArray(record, key);
-  return list.length > 0 ? list : undefined;
-}
-
 /** Read a boolean field, defaulting to false. */
 function bool(record: Record<string, unknown>, key: string): boolean {
   return record[key] === true;
-}
-
-/** Read a string[] field, keeping only string members; [] when absent. */
-function strArray(record: Record<string, unknown>, key: string): string[] {
-  const value = record[key];
-  return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
-}
-
-/** Read the staged package library (per-package provenance) for the list UI. */
-async function readLibraryModel(): Promise<PackagesLibraryModel> {
-  const effective = await resolveEffectiveStoreDir("packages");
-  const meta = await readPackagesStoreMeta(effective?.storeDir);
-  return {
-    packages: (meta?.packages ?? []).map((p) => ({
-      label:      p.label,
-      relPath:    p.relPath,
-      provenance: formatPackageProvenance(p),
-      sourcePath: p.sourcePath,
-      bytes:      p.bytes,
-    })),
-  };
 }
 
 // ---------------------------------------------------------------------------
@@ -216,66 +182,6 @@ export const capabilities: CommandRegistry = {
   "templates:select": templatesSelect,
   "templates:delete": templatesDelete,
 
-  async packages(session: HostSession, args: unknown): Promise<unknown> {
-    const record   = asRecord(args);
-    const prompt   = createGuiPrompt(session);
-    const verb     = str(record, "verb");
-    const packages = strArray(record, "packages");
-    const to       = strArray(record, "to");
-    // The Packages page validates the picked folders (packages:resolve-source)
-    // and passes them as `from` — one path or several (multi-folder pick); if it
-    // somehow arrives without one, runAdd's own dir prompt fires (a native
-    // folder dialog under the GUI prompt adapter).
-    const wantsSource = verb === "add" || verb === "export";
-    const from = wantsSource ? strOrList(record, "from") : undefined;
-    await runPackages(
-      {
-        verb,
-        from,
-        to:       to.length > 0 ? to : undefined,
-        packages: packages.length > 0 ? packages : undefined,
-        dryRun:   false,
-        autoYes:  false,
-      },
-      prompt,
-      createGuiOutput(session),
-    );
-    return null;
-  },
-
-  // --- packages page: pickers + library commands feeding the list UI ---
-  // resolve-source validates a natively-picked folder to a stageable package
-  // (its project-root-relative path — Assets/ content, embedded UPM packages,
-  // or custom root-level folders); list returns the staged library; remove
-  // drops packages from it.
-  async "packages:resolve-source"(_session: HostSession, args: unknown): Promise<unknown> {
-    const picked = str(asRecord(args), "picked");
-    if (!picked) {
-      return { status: "invalid", picked: "", message: "No folder selected" } satisfies PackagesSourceResult;
-    }
-    const resolved = await resolveAddFolder(picked);
-    if (resolved.status === "ok") {
-      const { projectRoot, relPath, label } = resolved.folder;
-      return { status: "ok", projectRoot, relPath, label } satisfies PackagesSourceResult;
-    }
-    return { status: "invalid", picked, message: resolved.message } satisfies PackagesSourceResult;
-  },
-
-  async "packages:list"(): Promise<unknown> {
-    return readLibraryModel();
-  },
-
-  async "packages:remove"(_session: HostSession, args: unknown): Promise<unknown> {
-    const relPaths = strArray(asRecord(args), "relPaths");
-    if (relPaths.length === 0) return readLibraryModel();
-    // Remove targets the same resolved store the list reads from (add writes the
-    // user store; the resolver returns it whenever it holds packages).
-    const effective = await resolveEffectiveStoreDir("packages");
-    await removePackages(relPaths, { storeDir: effective?.storeDir });
-    // Return the updated library so the renderer refreshes in one round-trip.
-    return readLibraryModel();
-  },
-
   // --- config: native form (Phase 4) -------------------------------------
   async "config:prepare"(): Promise<unknown> {
     const current = await loadConfig();
@@ -300,7 +206,7 @@ export const capabilities: CommandRegistry = {
   },
 
   async doctor(session: HostSession): Promise<unknown> {
-    await runDoctor(undefined, {}, createGuiOutput(session));
+    await runDoctor(undefined, createGuiOutput(session));
     return null;
   },
 

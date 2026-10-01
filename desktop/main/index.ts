@@ -98,17 +98,13 @@ function expandDefault(raw: string | undefined): string | undefined {
   return raw?.startsWith("~") ? path.join(os.homedir(), raw.slice(1)) : raw;
 }
 
-/** Picker options relayed over CHANNEL_PICK_DIR; `multi` enables multi-selection. */
+/** Picker options relayed over CHANNEL_PICK_DIR. */
 interface PickOptions { kind?: "dir" | "path"; title?: string; defaultPath?: string }
 
 /** Open a native folder/file picker; returns the chosen path, or null when cancelled. */
-async function openPathDialog(opts?: PickOptions): Promise<string | null>;
-/** Multi-selection variant: every chosen path, or null when cancelled / nothing chosen. */
-async function openPathDialog(opts: PickOptions & { multi: true }): Promise<string[] | null>;
-async function openPathDialog(opts: PickOptions & { multi?: boolean } = {}): Promise<string | string[] | null> {
+async function openPathDialog(opts: PickOptions = {}): Promise<string | null> {
   const properties: OpenDialogOptions["properties"] =
     opts.kind === "path" ? ["openFile", "openDirectory"] : ["openDirectory"];
-  if (opts.multi) properties.push("multiSelections");
   // Project pickers with no explicit start location open at the configured
   // Unity projects root (Settings → Config); loadConfig never throws, so an
   // unset/absent config just yields the OS default.
@@ -122,9 +118,7 @@ async function openPathDialog(opts: PickOptions & { multi?: boolean } = {}): Pro
     ? await dialog.showOpenDialog(mainWindow, options)
     : await dialog.showOpenDialog(options);
   if (result.canceled) return null;
-  return opts.multi
-    ? (result.filePaths.length > 0 ? result.filePaths : null)
-    : (result.filePaths[0] ?? null);
+  return result.filePaths[0] ?? null;
 }
 
 interface SaveOptions {
@@ -278,12 +272,7 @@ app.whenReady().then(() => {
   // Session-less native folder/file picker for launch forms.
   ipcMain.handle(
     CHANNEL_PICK_DIR,
-    // Branch on multi so each side picks the matching overload (scalar vs
-    // array) instead of one broad union crossing the IPC boundary.
-    (_event, options: PickOptions & { multi?: boolean }) =>
-      options?.multi
-        ? openPathDialog({ ...options, multi: true })
-        : openPathDialog(options),
+    (_event, options: PickOptions | undefined) => openPathDialog(options),
   );
 
   ipcMain.handle(

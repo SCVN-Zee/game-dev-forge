@@ -1,94 +1,83 @@
-/* Shared Radix/shadcn tokens, following the native system appearance. */
-
 @import "tailwindcss";
 @import "tw-animate-css";
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* One palette, semantic roles: all colors resolve to Tailwind's built-in scale. */
 :root {
   color-scheme: dark;
-
-  --radius: 0.625rem;
-
-  --background: #1b1d21;
-  --foreground: #f0f1f3;
-
-  --card: #22252a;
-  --card-foreground: #f0f1f3;
-
-  --popover: oklch(0.21 0.006 265);
-  --popover-foreground: oklch(0.97 0.003 265);
-
-  --primary: oklch(0.769 0.165 70);
-  --primary-foreground: oklch(0.24 0.03 66);
-
-  --secondary: oklch(0.255 0.006 265);
-  --secondary-foreground: oklch(0.97 0.003 265);
-
-  --muted: oklch(0.255 0.006 265);
-  --muted-foreground: #adb2bd;
-
-  --accent: oklch(0.28 0.008 265);
-  --accent-foreground: oklch(0.97 0.003 265);
-
-  --destructive: oklch(0.62 0.2 20);
-  --destructive-foreground: oklch(0.98 0.012 20);
-
-  --success: oklch(0.72 0.16 155);
-  --warning: oklch(0.8 0.14 80);
-
-  --border: #383c44;
-  --input: #555b67;
-  --ring: oklch(0.769 0.165 70);
-
-  --sidebar: #17191d;
-  --sidebar-foreground: #f0f1f3;
-  --sidebar-primary: oklch(0.769 0.165 70);
-  --sidebar-primary-foreground: oklch(0.24 0.03 66);
-  --sidebar-accent: #34302a;
-  --sidebar-accent-foreground: #ffd18a;
-  --sidebar-border: #383c44;
-  --sidebar-ring: oklch(0.769 0.165 70);
-
-  --sidebar-width: 14rem;
-  --sidebar-width-icon: 3.75rem;
-
+  --radius: 0.75rem;
+  --background: var(--color-zinc-950);
+  --foreground: var(--color-zinc-100);
+  --card: var(--color-zinc-900);
+  --card-foreground: var(--color-zinc-100);
+  --popover: var(--color-zinc-900);
+  --popover-foreground: var(--color-zinc-100);
+  --primary: var(--color-amber-400);
+  --primary-foreground: var(--color-zinc-950);
+  --secondary: var(--color-zinc-800);
+  --secondary-foreground: var(--color-zinc-100);
+  --muted: var(--color-zinc-800);
+  --muted-foreground: var(--color-zinc-400);
+  --accent: var(--color-zinc-800);
+  --accent-foreground: var(--color-zinc-100);
+  --destructive: var(--color-red-400);
+  --destructive-foreground: var(--color-zinc-950);
+  --success: var(--color-emerald-400);
+  --warning: var(--color-amber-400);
+  --border: var(--color-zinc-700);
+  --input: var(--color-zinc-600);
+  --ring: var(--color-amber-400);
+  --sidebar: var(--color-zinc-900);
+  --sidebar-foreground: var(--color-zinc-100);
+  --sidebar-primary: var(--color-amber-400);
+  --sidebar-primary-foreground: var(--color-zinc-950);
+  --sidebar-accent: color-mix(in oklch, var(--color-amber-400) 12%, var(--color-zinc-900));
+  --sidebar-accent-foreground: var(--color-amber-300);
+  --sidebar-border: var(--color-zinc-800);
+  --sidebar-ring: var(--color-amber-400);
+  --sidebar-width: 11rem;
+  --sidebar-width-icon: 3.5rem;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --motion-fast: 180ms;
+  --spotlight-color: color-mix(in oklch, var(--color-amber-400) 7%, transparent);
+  --glint-color: var(--color-amber-100);
 }
 
 @media (prefers-color-scheme: light) {
   :root {
     color-scheme: light;
-    --background: #f3f4f6;
-    --foreground: #20242c;
-    --card: #fcfcfd;
-    --card-foreground: #20242c;
-    --popover: #fcfcfd;
-    --popover-foreground: #20242c;
-    --primary: #f3ae3d;
-    --primary-foreground: #30200c;
-    --secondary: #e7e9ee;
-    --secondary-foreground: #303641;
-    --muted: #e7e9ee;
-    --muted-foreground: #5c6370;
-    --accent: #e9ebef;
-    --accent-foreground: #20242c;
-    --destructive: #b52c35;
-    --destructive-foreground: #fcfcfd;
-    --success: #207448;
-    --warning: #88600a;
-    --border: #d9dce2;
-    --input: #929aa7;
-    --ring: #966010;
-    --sidebar: #eceef2;
-    --sidebar-foreground: #20242c;
-    --sidebar-primary: #81500b;
-    --sidebar-primary-foreground: #fcfcfd;
-    --sidebar-accent: #f7e6c8;
-    --sidebar-accent-foreground: #704408;
-    --sidebar-border: #d5d8df;
-    --sidebar-ring: #966010;
+    --background: var(--color-zinc-100);
+    --foreground: var(--color-zinc-950);
+    --card: var(--color-white);
+    --card-foreground: var(--color-zinc-950);
+    --popover: var(--color-white);
+    --popover-foreground: var(--color-zinc-950);
+    --primary: var(--color-amber-700);
+    --primary-foreground: var(--color-white);
+    --secondary: var(--color-zinc-100);
+    --secondary-foreground: var(--color-zinc-900);
+    --muted: var(--color-zinc-200);
+    --muted-foreground: var(--color-zinc-600);
+    --accent: var(--color-zinc-100);
+    --accent-foreground: var(--color-zinc-950);
+    --destructive: var(--color-red-700);
+    --destructive-foreground: var(--color-white);
+    --success: var(--color-emerald-700);
+    --warning: var(--color-amber-700);
+    --border: var(--color-zinc-300);
+    --input: var(--color-zinc-400);
+    --ring: var(--color-amber-700);
+    --sidebar: var(--color-zinc-50);
+    --sidebar-foreground: var(--color-zinc-950);
+    --sidebar-primary: var(--color-amber-700);
+    --sidebar-primary-foreground: var(--color-white);
+    --sidebar-accent: var(--color-amber-100);
+    --sidebar-accent-foreground: var(--color-amber-900);
+    --sidebar-border: var(--color-zinc-200);
+    --sidebar-ring: var(--color-amber-700);
+    --spotlight-color: color-mix(in oklch, var(--color-amber-500) 8%, transparent);
   }
 }
 
@@ -114,7 +103,6 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -123,125 +111,80 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-
-  --ease-out: var(--ease-out);
-  --ease-in-out: var(--ease-in-out);
 }
 
 @layer base {
-  * {
-    border-color: var(--color-border);
-  }
-
-  html,
-  body,
-  #root {
-    height: 100%;
-  }
-
+  * { border-color: var(--border); }
+  html, body, #root { height: 100%; }
   body {
     margin: 0;
-    background-color: var(--color-background);
-    color: var(--color-foreground);
-    font-family:
-      ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-feature-settings:
-      "rlig" 1,
-      "calt" 1;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
   }
-
-  ::selection {
-    background: color-mix(in oklch, var(--color-primary) 35%, transparent);
+  ::selection { background: color-mix(in oklch, var(--primary) 25%, transparent); }
+  * { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  button, input, textarea, select { -webkit-app-region: no-drag; }
+  button:not(:disabled), [role="switch"]:not(:disabled) { cursor: pointer; }
+  button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
   }
-
-  /* Thin, unobtrusive scrollbars matching the dark surfaces. */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: var(--color-border) transparent;
-  }
+  code, pre { font-variant-numeric: tabular-nums; }
 }
 
-/* Frameless-window drag regions (Electron titleBarStyle: hiddenInset). Ignored
-   in a browser; honored in Electron so the inset strips move the window. */
-.app-drag {
-  -webkit-app-region: drag;
-}
-.no-drag {
-  -webkit-app-region: no-drag;
-}
-
-/* Onboarding card entrance. A rare, one-shot mount (first run or replay) —
-   standard animation is appropriate: fade + 8px rise under 300ms with a
-   strong ease-out so motion is visible in the first frames. Never scales
-   from 0. Reduced motion: fade only, no positional movement. */
-@keyframes onboarding-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.onboarding-card {
-  animation: onboarding-in 220ms cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .onboarding-card {
-    animation: onboarding-fade 160ms ease-out;
-  }
-}
-
-@keyframes onboarding-fade {
-  from {
-    opacity: 0;
-  }
-}
-
-/* Workspace spacing preserves each view's scrolling contract. */
-.app-content > div { padding: 32px; }
-[data-slot="card"] { box-shadow: none; }
-[data-slot="card-title"] {
-  font-size: 1.25rem;
-  line-height: 1.3;
-  letter-spacing: -0.025em;
-}
-[data-slot="card-description"] { line-height: 1.65; max-width: 65ch; }
-[data-slot="select-trigger"], [data-slot="textarea"] {
-  background-color: var(--background);
-  border-color: var(--input);
-}
-[data-slot="select-trigger"] { min-height: 40px; }
-button, input, textarea, select { -webkit-app-region: no-drag; }
-button:not(:disabled), [role="switch"]:not(:disabled) { cursor: pointer; }
-button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 3px;
+.app-drag { -webkit-app-region: drag; }
+.no-drag { -webkit-app-region: no-drag; }
+.workspace-page { width: 100%; max-width: 56rem; margin-inline: auto; }
+.page-header { padding: 0; }
+[data-slot="card-title"] { font-size: 0.875rem; line-height: 1.4; letter-spacing: -0.01em; }
+[data-slot="card-description"] { line-height: 1.5; max-width: 65ch; }
+[data-slot="select-trigger"], [data-slot="textarea"] { background: var(--background); border-color: var(--input); }
+[data-slot="select-trigger"] { min-height: 36px; }
+[data-slot="input"], [data-slot="select-trigger"], [data-slot="textarea"] {
+  transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
 }
 .app-sidebar [aria-current="page"] svg { color: var(--sidebar-accent-foreground); }
-@media (max-width: 767px) {
-  .app-sidebar { width: 10.5rem; }
-  .app-sidebar[data-collapsed="true"] { width: var(--sidebar-width-icon); }
-  .app-sidebar > div:has(img) { padding-inline: 12px; }
-  .app-sidebar nav { padding-inline: 8px; }
-  .app-content > div { padding: 16px; }
-  [data-slot="card-header"], [data-slot="card-content"], [data-slot="card-footer"] {
-    padding-inline: 16px;
-  }
+
+/* React Bits illumination sits behind content and never clips a focus ring. */
+.spotlight-glow {
+  opacity: 0;
+  background: radial-gradient(480px circle at var(--spotlight-x, 50%) var(--spotlight-y, 0%), var(--spotlight-color), transparent 80%);
+  transition: opacity var(--motion-fast);
 }
+@media (hover: hover) and (pointer: fine) {
+  .spotlight-card:hover > .spotlight-glow { opacity: 1; }
+  [data-slot="button"]:active:not(:focus-visible) { transform: scale(0.97); }
+}
+.spotlight-card:focus-within > .spotlight-glow { opacity: 1; transition: none; }
+
+/* StarBorder is quiet at rest. Only the two thin edge glints are clipped. */
+.star-glint {
+  inset-inline: 1px;
+  height: 2px;
+  overflow: hidden;
+  border-radius: inherit;
+  opacity: 0;
+  background: radial-gradient(ellipse at center, var(--glint-color), transparent 65%);
+  transition: opacity 120ms;
+}
+.star-glint-top { top: 0; }
+.star-glint-bottom { bottom: 0; }
+.star-border:not(:disabled):is(:hover, :focus-visible) > .star-glint { opacity: 0.7; }
+.star-border:focus-visible > .star-glint, [data-slot="button"]:focus-visible, [data-slot="input"]:focus-visible, [data-slot="textarea"]:focus-visible, [data-slot="select-trigger"]:focus-visible { transition: none; }
+
+.onboarding-card { animation: onboarding-in 220ms var(--ease-out); }
+.onboarding-card [data-slot="card-title"] { font-size: 1.25rem; letter-spacing: -0.03em; }
+.onboarding-card [data-slot="card-header"] { gap: 8px; }
+@keyframes onboarding-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation: none !important;
-    transition: none !important;
-    scroll-behavior: auto !important;
-  }
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .spotlight-glow, .star-glint { display: none; }
 }

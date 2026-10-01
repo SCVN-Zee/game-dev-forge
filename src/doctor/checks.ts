@@ -20,11 +20,6 @@ import { findInstallRoot } from "../util/install-root.js";
 import { bundledNodeBinPath } from "../features/pack/bundled-node-paths.js";
 import { detectUnityVersions } from "../detectors/detect-unity-versions.js";
 import { detectForkRunning } from "../detectors/detect-fork-running.js";
-import { formatBytes } from "../util/format-bytes.js";
-import {
-  readPackagesStoreMeta,
-  resolveEffectiveStoreDir,
-} from "../features/store/index.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -37,16 +32,12 @@ export interface CheckResult {
   detail?: string;
 }
 
-/** Optional context passed to every check's run() (currently: store-dir override). */
-export interface CheckContext {
-  storeOverride?: string;
-}
 
 export interface Check {
   id: string;
   label: string;
   macOnly?: boolean;
-  run(ctx?: CheckContext): Promise<CheckResult>;
+  run(): Promise<CheckResult>;
 }
 
 // ---------------------------------------------------------------------------
@@ -57,12 +48,6 @@ function macOnlySkipped(): CheckResult {
   return { severity: "skipped", detail: "macOS only — skipped" };
 }
 
-/** Suffix tag for a non-user store source in the doctor store line. */
-function storeSourceTag(source: string | undefined): string {
-  if (source === "bundled")  return " (bundled)";
-  if (source === "override") return " (override)";
-  return "";
-}
 
 // ---------------------------------------------------------------------------
 // Individual check implementations
@@ -156,30 +141,6 @@ async function checkBundledNode(): Promise<CheckResult> {
   }
 }
 
-/**
- * Informational store status — never fails the run: an empty store is a
- * normal state (nothing exported yet), so severity is always "pass".
- */
-async function checkStore(ctx?: CheckContext): Promise<CheckResult> {
-  // Resolve the effective store (explicit override, else user, else CLI-bundled)
-  // so doctor reports what an import would actually apply, labelling the source.
-  // The override threads from `gdf doctor --store <dir>`.
-  const override = ctx?.storeOverride;
-  const packagesEff = await resolveEffectiveStoreDir("packages", { override }).catch(() => null);
-  const packagesMeta = await readPackagesStoreMeta(packagesEff?.storeDir).catch(() => null);
-  const packagesTag = storeSourceTag(packagesEff?.source);
-
-  // Empty packages[] counts as nothing staged — same rule as the import flows.
-  if (packagesMeta && packagesMeta.packages.length > 0) {
-    const totalBytes = packagesMeta.packages.reduce((sum, p) => sum + p.bytes, 0);
-    return {
-      severity: "pass",
-      detail: `packages: ${packagesMeta.packages.length} staged, ${formatBytes(totalBytes)}${packagesTag}`,
-    };
-  }
-  return { severity: "pass", detail: "nothing staged (gdf packages add)" };
-}
-
 
 async function checkUnity(): Promise<CheckResult> {
   if (process.platform !== "darwin") return macOnlySkipped();
@@ -200,7 +161,6 @@ async function checkFork(): Promise<CheckResult> {
   return { severity: "warn", detail: "Fork is running — quit Fork before applying git config" };
 }
 
-
 // ---------------------------------------------------------------------------
 // Check registry (ordered for display)
 // ---------------------------------------------------------------------------
@@ -211,7 +171,6 @@ export const CHECKS: Check[] = [
   { id: "git-lfs",   label: "git-lfs present",        run: checkGitLfs },
   { id: "node",      label: "Node ≥ 20",              run: checkNode },
   { id: "bundled-node", label: "Bundled Node",        macOnly: true, run: checkBundledNode },
-  { id: "store",     label: "Store (~/.scvn/store)",  run: checkStore },
   { id: "unity",     label: "Unity Hub editors",      macOnly: true, run: checkUnity },
   { id: "fork",      label: "Fork not running",       macOnly: true, run: checkFork },
 ];

@@ -3,8 +3,8 @@
  *
  * runPackBundle() returns an exit code (0 ok, 1 failed) and is non-interactive, so there are no
  * prompt/confirm/dry-run cases. Feature/service seams (resolveBundleSourcePaths, assembleBundle,
- * createZip, getVersion, store meta, node-dist) are mocked; fs (mkdtemp/rm/access) runs for real on
- * tmp dirs so cleanup + the build guard are exercised genuinely.
+ * createZip, getVersion, and node-dist) are mocked; filesystem cleanup and the build guard run
+ * against real temporary directories.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -36,9 +36,6 @@ const bundlePathsMock = vi.hoisted(() => ({ resolveBundleSourcePaths: vi.fn() })
 const assembleMock    = vi.hoisted(() => ({ assembleBundle: vi.fn() }));
 const zipMock         = vi.hoisted(() => ({ createZip: vi.fn() }));
 const appInfoMock     = vi.hoisted(() => ({ getVersion: vi.fn() }));
-const storeMocks      = vi.hoisted(() => ({
-  readPackagesStoreMeta: vi.fn(),
-}));
 const nodeDistMock    = vi.hoisted(() => ({
   fetchNodeBinary:     vi.fn(),
   currentDarwinArch:   vi.fn(),
@@ -55,13 +52,6 @@ vi.mock("../../src/util/app-info.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../src/util/app-info.js")>();
   return { ...actual, getVersion: appInfoMock.getVersion };
 });
-vi.mock("../../src/features/store/index.js", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../../src/features/store/index.js")>();
-  return {
-    ...actual,
-    readPackagesStoreMeta: storeMocks.readPackagesStoreMeta,
-  };
-});
 vi.mock("../../src/services/node-dist.js", () => nodeDistMock);
 
 import { runPackBundle } from "../../scripts/pack.js";
@@ -70,11 +60,6 @@ import { runPackBundle } from "../../scripts/pack.js";
 // Fixtures
 // ---------------------------------------------------------------------------
 
-const PACKAGES_META = {
-  kind: "packages" as const, sourcePath: "/p/hub/Assets", sourceName: "hub",
-  branch: "main", exportedAt: new Date(Date.now() - 3_600_000).toISOString(), bytes: 2,
-  packages: [{ label: "vFolders", relPath: "vFolders", bytes: 1 }],
-};
 
 /** Build a paths object rooted under a tmp dir; optionally create dist/cli.mjs. */
 async function makePaths(installRoot: string, withBuild: boolean) {
@@ -86,8 +71,6 @@ async function makePaths(installRoot: string, withBuild: boolean) {
   return {
     installRoot,
     cliEntry:        path.join(installRoot, "dist", "cli.mjs"),
-    userStoreParent: scvnParent,
-    userStoreDir:    path.join(scvnParent, "store"),
     nodeCacheDir:    path.join(scvnParent, "cache", "node"),
     outDir:          path.join(installRoot, "pkg"),
   };
@@ -98,10 +81,9 @@ let fakeNodeBin: string;
 beforeEach(async () => {
   vi.clearAllMocks();
   appInfoMock.getVersion.mockReturnValue("9.9.9");
-  storeMocks.readPackagesStoreMeta.mockResolvedValue(PACKAGES_META);
   assembleMock.assembleBundle.mockResolvedValue(undefined);
   zipMock.createZip.mockResolvedValue(undefined);
-  // node-dist is mocked; fetchNodeBinary resolves a REAL temp file so the preview can stat its size.
+  // node-dist is mocked; fetchNodeBinary resolves a REAL temp file so pack can stat its size.
   nodeDistMock.currentDarwinArch.mockReturnValue("arm64");
   const holder = await tmpDir("scvn-fakenode-");
   fakeNodeBin = path.join(holder, "node");
@@ -137,7 +119,6 @@ describe("runPackBundle()", () => {
     expect(assembleMock.assembleBundle).toHaveBeenCalledWith(
       expect.objectContaining({
         installRoot:     root,
-        userStoreParent: p.userStoreParent,
         version:         "9.9.9",
         nodeBinPath:     fakeNodeBin,
       }),
@@ -165,16 +146,6 @@ describe("runPackBundle()", () => {
     await expect(access(staging!)).rejects.toThrow();
   });
 
-  it("empty store: warns but still bundles the CLI", async () => {
-    const root = await tmpDir("scvn-pack-root-");
-    bundlePathsMock.resolveBundleSourcePaths.mockResolvedValue(await makePaths(root, true));
-    storeMocks.readPackagesStoreMeta.mockResolvedValue(null);
-
-    const code = await runPackBundle();
-
-    expect(code).toBe(0);
-    expect(assembleMock.assembleBundle).toHaveBeenCalledOnce();
-  });
 
   it("noNode: skips the Node fetch, assembles without nodeBinPath", async () => {
     const root = await tmpDir("scvn-pack-root-");

@@ -10,9 +10,8 @@
  *   - `-y` / non-TTY → hard-fail (exit 1) with a hint (cannot open an editor).
  *
  * Invocations that don't need the root — config/doctor/help/--version, the
- * migration hints, unknown/bare, and any run with an explicit --from/--to/--target
- * — skip the guard entirely (so the teammate `gdf import --to X` flow still runs
- * on an empty config).
+ * migration hints, unknown/bare, and runs with an explicit --target skip
+ * the guard entirely.
  */
 
 import process from "node:process";
@@ -33,12 +32,10 @@ export const SETUP_OPS: Record<string, true> = {
 
 /** The parsed invocation shape the predicate needs. */
 export interface Invocation {
-  /** Resolved namespace (packages/sync/setup/config/doctor) or null. */
+  /** Resolved namespace (sync/setup/config/doctor) or null. */
   namespace: string | null;
   /** Positional subcommand tokens (verb / op / "fork" / trailing args). */
   subcommands: string[];
-  hasFrom: boolean;
-  hasTo: boolean;
   /** --target flag OR SCVN_TARGET env present. */
   hasTarget: boolean;
   /** At least one `gdf git` op flag (--ignore/--exclude/--lfs) present. */
@@ -50,25 +47,18 @@ export interface Invocation {
 /**
  * Whether this invocation will reach an interactive project picker and thus
  * needs SCVN_PROJECTS_ROOT. Returns false for invocations that dispatch will
- * reject as usage errors (unknown verbs, trailing args, bare-noun-under-`-y`)
- * and for the migration-hint namespaces — so those keep producing their own
- * specific errors rather than the config hint. Explicit flags short-circuit the
- * picker, so they also make the root unnecessary.
+ * reject as usage errors (unknown commands/verbs or trailing args) and for
+ * migration-hint namespaces. Those retain their specific errors. An explicit
+ * --target bypasses the picker and makes the root unnecessary.
  */
 export function needsProjectsRoot(inv: Invocation): boolean {
-  const { namespace: ns, autoYes } = inv;
+  const { namespace: ns } = inv;
   const subs = inv.subcommands;
   const s = subs[0] ?? "";
 
   // Migration-hint namespaces (and the bare `all` alias → sync) never need the root.
   if (ns === "sync" || ns === "setup") return false;
 
-  if (ns === "packages") {
-    if (s === "export") return !inv.hasFrom;
-    if (s === "import") return !inv.hasTo;
-    if (s === "") return !autoYes; // bare verb menu (under -y this is a usage error)
-    return false;                  // unknown verb → dispatch reports the usage error
-  }
 
   // Top-level direct commands (namespace must be null). Trailing args are usage
   // errors, so only the exact single-token form needs the root.

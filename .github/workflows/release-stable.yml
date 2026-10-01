@@ -73,7 +73,7 @@ jobs:
       - name: Build, sign, and publish
         env:
           # Generic build-time tab selection: ship the full tab set.
-          SCVN_TABS: fork,git,packages,init,settings
+          SCVN_TABS: fork,git,init,settings
           # Tier 1 — Apple Developer ID (empty string when the secret is unset).
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}

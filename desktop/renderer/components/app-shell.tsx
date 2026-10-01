@@ -1,17 +1,16 @@
 /**
- * components/app-shell.tsx — Top-level layout: sticky sidebar + topbar + pane.
+ * components/app-shell.tsx — Native-safe titlebar, compact sidebar and workspace.
  *
- * Owns the sidebar collapse state (persisted to localStorage, toggled by the
- * sidebar chevron or ⌘/Ctrl-B). The content pane is the only scrolling region,
- * so the sidebar stays pinned to the window edge. A draggable top inset in each
- * column clears the macOS traffic lights (window uses titleBarStyle hiddenInset)
- * and gives the frameless window a drag handle.
+ * Owns persisted sidebar collapse and the ⌘/Ctrl-B shortcut. The full-width
+ * titlebar clears macOS traffic lights; long workspace trees and logs scroll
+ * in their own panes while navigation and task actions remain visible.
  */
 
 import * as React from "react";
 
 import type { CapabilitySpec } from "@shared/commands";
 import { Sidebar } from "@/components/sidebar";
+import logoUrl from "@/assets/logo.png";
 
 const COLLAPSE_KEY = "scvn.sidebar.collapsed";
 
@@ -151,8 +150,8 @@ function SetupDialog({
     focusable[nextIndex]?.focus();
   }
   return (
-    <div className="pointer-events-none fixed inset-0 z-50 flex items-start justify-center pt-8 md:items-center md:pt-8">
-      <div aria-hidden="true" className="pointer-events-auto absolute inset-0 bg-background/80 backdrop-blur-[2px]" />
+    <div className="pointer-events-none fixed inset-0 z-50 flex items-start justify-center px-4 pt-10 md:items-center md:pt-8">
+      <div aria-hidden="true" className="pointer-events-auto absolute inset-0 bg-background/80 backdrop-blur-sm" />
       <div
         ref={dialogRef}
         role="dialog"
@@ -162,7 +161,7 @@ function SetupDialog({
         aria-keyshortcuts="Tab"
         tabIndex={-1}
         data-setup-dialog
-        className="no-drag pointer-events-auto relative z-10 max-h-[calc(100vh-4rem)] w-full max-w-4xl overflow-auto outline-none"
+        className="no-drag pointer-events-auto relative z-10 flex max-h-[calc(100dvh-5rem)] w-full max-w-xl flex-col outline-none"
         onKeyDownCapture={containFocus}
         onClick={(event) => event.stopPropagation()}
         onMouseDown={(event) => event.stopPropagation()}
@@ -199,24 +198,24 @@ export function AppShell({
 
   return (
     <>
-      <div aria-hidden={setupOpen} inert={setupOpen} className="app-shell flex h-dvh w-full overflow-hidden bg-background text-foreground">
-        <Sidebar
-          items={items}
-          selectedId={selectedId}
-          onSelect={onSelect}
-          collapsed={collapsed}
-          onToggle={toggle}
-          onReplaySetup={captureSetupOpener}
-        />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <div className="app-drag h-8 shrink-0" />
-          <header className="app-drag flex h-16 shrink-0 items-center gap-3 border-b border-border px-6">
-            <span className="text-sm text-muted-foreground">Workspace</span>
-            <span aria-hidden="true" className="text-muted-foreground">/</span>
-            <h1 id="page-title" className="truncate text-sm font-semibold">{title}</h1>
-          </header>
-          {banner ? <div onClickCapture={rememberSetupOpener}>{banner}</div> : null}
-          <main aria-labelledby="page-title" className="app-content min-h-0 flex-1 overflow-auto">{children}</main>
+      <div aria-hidden={setupOpen} inert={setupOpen} className="app-shell flex h-dvh w-full flex-col overflow-hidden bg-background text-foreground">
+        <header className="app-drag flex h-12 shrink-0 items-center gap-2.5 border-b border-sidebar-border bg-sidebar pl-[104px] pr-4">
+          <img src={logoUrl} alt="" aria-hidden="true" className="size-7 shrink-0 rounded-md" draggable={false} />
+          <h1 className="truncate text-sm font-semibold">Game Dev Forge</h1>
+        </header>
+        <div className="flex min-h-0 flex-1">
+          <Sidebar
+            items={items}
+            selectedId={selectedId}
+            onSelect={onSelect}
+            collapsed={collapsed}
+            onToggle={toggle}
+            onReplaySetup={captureSetupOpener}
+          />
+          <div className="flex min-w-0 flex-1 flex-col">
+            {banner ? <div onClickCapture={rememberSetupOpener}>{banner}</div> : null}
+            <main aria-label={title} className="app-content min-h-0 flex-1 overflow-auto">{children}</main>
+          </div>
         </div>
       </div>
       <SetupDialog open={setupOpen} openerFallback={setupOpenerRef.current}>{setup}</SetupDialog>

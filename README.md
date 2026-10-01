@@ -1,9 +1,8 @@
 # Game Dev Forge
 
-A native macOS app that sets up and maintains Unity projects — merge-tool
-configuration, git artifacts, a shared package
-library, and project scaffolding — entirely through a GUI: folder pickers
-instead of typed paths, streaming output, no terminal required.
+A native macOS app for Unity project setup and maintenance — Fork merge
+configuration, Git setup, and project scaffolding — through a GUI with folder
+pickers, streaming output, and no terminal required.
 
 The same engine also ships as the `gdf` command-line tool; see
 [CLI.md](CLI.md) for the full CLI reference.
@@ -55,8 +54,18 @@ Choose **Skip for now** to enter the app without finishing; a banner reminds
 you and onboarding reappears on the next launch until the projects root is
 saved.
 
-The interface follows macOS light/dark appearance and reduced-motion settings.
-Use the sidebar chevron or **Cmd+B** to toggle the compact icon rail; your choice
+The desktop UI uses React Bits SpotlightCard and StarBorder, with Tailwind Zinc
+surfaces and Amber tokens. It follows the system's light/dark appearance and
+reduced-motion preference. All tabs use a centered workspace capped at 896px,
+with a 176px sidebar and consistent headings, panels, spacing, and local task
+controls. Fork’s Apply button sits beneath its settings inside the panel. Trees,
+editors, and logs scroll independently; setup and editor footers stay visible.
+The app icon and name sit beside the window controls in a 48px titlebar. Sidebar
+navigation has an 8px top inset and inset keyboard focus rings to avoid overlap.
+At compact sizes, Git’s panel can scroll as a whole so submodule switches remain
+reachable even when repository actions fill the available height.
+Standard controls are 36px tall with 16–20px page insets; app zoom is unchanged.
+Use the sidebar chevron or **Cmd+B** to toggle the 56px icon rail; your choice
 is remembered between sessions.
 
 ---
@@ -64,7 +73,7 @@ is remembered between sessions.
 ## The tabs
 
 The sidebar shows what your build ships — in released builds:
-**Fork · Git setup · Packages · Initialize · Settings**.
+**Fork · Git setup · Initialize · Settings**.
 
 ### Fork — merge tool for Unity YAML
 
@@ -109,22 +118,12 @@ the current preset’s last saved content. Deleting the selected custom preset
 returns to Default. Old Default overrides are imported once as a custom
 **Previous Default** preset. Presets live under `~/.scvn/templates/`.
 
-### Packages — shared library
+### Packages — removed
 
-One library of staged package folders that you build once from a source
-project and apply to any target project.
-
-- **Add** — pick one or more folders **inside** a Unity project (under
-  `Assets/`, `Packages/`, or a custom root folder). The project-relative path
-  is preserved, the paired `.meta` file comes along, and provenance (source
-  repo, when, size) is recorded. Adds accumulate — existing entries stay.
-- **Import** — tick the rows (or a whole folder's select-all) and apply them
-  to a target project. Runs with streaming progress.
-- **Remove** — drop entries from the library.
-
-The tree groups everything by where it lives (`Assets/…`, `Packages/…`,
-custom root folders) so you can see what each package is before importing.
-The library is stored under `~/.scvn/store/`.
+The Packages feature has been removed from the desktop app and CLI without a
+migration. Existing `~/.scvn/store/` data is left untouched and is no longer
+managed by Game Dev Forge. Desktop production builds clear generated output
+before rebuilding, so removed feature assets cannot linger in packaged apps.
 
 ### Initialize — folder scaffolding
 
@@ -182,11 +181,10 @@ with `brew install git-lfs` when you want that op.
 | Path | Purpose |
 |---|---|
 | `~/.scvn/config` | App configuration (the Unity projects root) |
-| `~/.scvn/store/` | The staged package library |
 | `~/.scvn/templates/` | Custom presets, selections, and legacy override backups |
 
 The rebrand keeps `~/.scvn/`, `SCVN_*` environment variables, and existing project
-markers unchanged so saved configuration, packages, and presets still work.
+markers unchanged so saved configuration and template presets still work.
 The packaged desktop keeps its `scvn` application-data profile for window and UI
 settings; development launches keep their separate Electron profile.
 The CLI command is now `gdf`; update scripts that invoked `scvn`.

@@ -3,18 +3,23 @@
  */
 
 import {
-  ForkKnife,
+  createLucideIcon,
   GitBranch,
-  Package,
+  FolderTree,
   Settings,
   Boxes,
   type LucideIcon,
 } from "lucide-react";
 
+const ForkUtensil = createLucideIcon("ForkUtensil", [
+  ["path", { d: "M7 2v6a5 5 0 0 0 10 0V2", key: "tines" }],
+  ["path", { d: "M12 2v20", key: "handle" }],
+]);
+
 const CAP_ICONS: Record<string, LucideIcon> = {
-  fork: ForkKnife,
+  fork: ForkUtensil,
   git: GitBranch,
-  packages: Package,
+  init: FolderTree,
   settings: Settings,
 };
 

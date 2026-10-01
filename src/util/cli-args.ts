@@ -10,17 +10,14 @@ export interface ParsedArgs {
   lfs: boolean;
   namespace: string | null;
   subcommands: string[];
-  from?: string;
-  to: string[];
   target?: string;
-  store?: string;
   name?: string;
   layout?: string;
   warnings: string[];
 }
 
-const KNOWN_NAMESPACES = new Set(["packages", "setup", "config", "doctor", "sync"]);
-const VALUE_FLAGS = new Set(["--from", "--to", "--target", "--store", "--name", "--layout"]);
+const KNOWN_NAMESPACES = new Set(["setup", "config", "doctor", "sync"]);
+const VALUE_FLAGS = new Set(["--target", "--name", "--layout"]);
 
 export function parseArgv(argv: string[]): ParsedArgs {
   let help = false;
@@ -30,20 +27,14 @@ export function parseArgv(argv: string[]): ParsedArgs {
   let ignore = false;
   let exclude = false;
   let lfs = false;
-  let from: string | undefined;
   let target: string | undefined;
-  let store: string | undefined;
   let name: string | undefined;
   let layout: string | undefined;
-  const to: string[] = [];
   const positionals: string[] = [];
   const warnings: string[] = [];
 
   function assignValueFlag(flag: string, value: string): void {
-    if (flag === "--from") from = value;
-    else if (flag === "--to") to.push(value);
-    else if (flag === "--target") target = value;
-    else if (flag === "--store") store = value;
+    if (flag === "--target") target = value;
     else if (flag === "--name") name = value;
     else if (flag === "--layout") layout = value;
   }
@@ -86,6 +77,6 @@ export function parseArgv(argv: string[]): ParsedArgs {
   const subcommands = namespace === null ? positionals : positionals.slice(1);
   return {
     help, version, dryRun, autoYes, ignore, exclude, lfs,
-    namespace, subcommands, from, to, target, store, name, layout, warnings,
+    namespace, subcommands, target, name, layout, warnings,
   };
 }

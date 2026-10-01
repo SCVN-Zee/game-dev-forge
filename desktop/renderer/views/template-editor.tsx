@@ -11,11 +11,12 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Plus, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, LoaderCircle, Plus, Save, Trash2 } from "lucide-react";
 
+import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -193,38 +194,38 @@ export function TemplateEditorView(props: TemplateEditorViewProps): React.JSX.El
   const isDefault = loaded?.selectedPreset === DEFAULT_PRESET_ID;
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-4xl flex-col p-6">
-      <Card className="flex min-h-0 flex-1 flex-col gap-4">
-        <CardHeader className="gap-3">
-          <div>
-            <Button type="button" variant="ghost" size="sm" className="-ml-2" disabled={busy} onClick={handleBack}>
-              <ArrowLeft />
-              Back
-            </Button>
-          </div>
-          <div className="flex items-center gap-2.5">
-            <CardTitle className="font-mono text-base">{label}</CardTitle>
+    <div className="workspace-page flex h-full min-h-0 flex-col gap-3 p-4 sm:p-5">
+      <PageHeader
+        title={label}
+        actions={
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <Badge variant={overridden ? "success" : "muted"}>
               {overridden ? "custom content" : "bundled content"}
             </Badge>
             {dirty ? (
-              <span className="flex items-center gap-1.5 text-xs font-medium text-warning">
-                <span className="size-1.5 rounded-full bg-warning" />
-                Unsaved
-              </span>
+              <Badge variant="muted" className="border-warning/40 text-warning">
+                Unsaved changes
+              </Badge>
             ) : null}
+            <Button type="button" variant="outline" size="sm" disabled={busy} onClick={handleBack}>
+              <ArrowLeft />
+              Back
+            </Button>
           </div>
-        </CardHeader>
-        <CardContent className="flex min-h-0 flex-1 flex-col gap-4">
+        }
+      />
+      <Card className="flex min-h-0 flex-1 flex-col gap-0 overflow-hidden p-0">
+        <CardContent className="flex min-h-0 flex-1 flex-col gap-2.5 p-3 sm:p-4">
           {loaded ? (
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-              <div className="flex items-center gap-2">
+            <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border pb-2">
+              <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+                <span id="template-preset-label" className="text-xs font-medium text-muted-foreground">Preset</span>
                 <Select
                   value={loaded.selectedPreset}
                   onValueChange={(preset) => handleSelectPreset(preset)}
                   disabled={busy}
                 >
-                  <SelectTrigger ref={presetTriggerRef} size="sm" className="w-52" aria-label="Template preset">
+                  <SelectTrigger ref={presetTriggerRef} size="sm" className="w-full sm:w-52" aria-labelledby="template-preset-label">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent onCloseAutoFocus={(event) => {
@@ -240,26 +241,23 @@ export function TemplateEditorView(props: TemplateEditorViewProps): React.JSX.El
                     </SelectItem>
                   </SelectContent>
                 </Select>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={isDefault || busy || creating}
-                  onClick={() => setConfirmingDelete((v) => !v)}
-                >
-                  <Trash2 />
-                  Delete
-                </Button>
               </div>
-              <p className="text-xs text-muted-foreground sm:ml-auto sm:text-right">
-                The selected preset is global — the CLI and this app both use it.
-              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isDefault || busy || creating}
+                onClick={() => setConfirmingDelete((v) => !v)}
+              >
+                <Trash2 />
+                Delete
+              </Button>
             </div>
           ) : null}
           {loaded && creating ? (
             <form
               aria-label="Create preset"
-              className="flex flex-col gap-2 sm:flex-row sm:items-center"
+              className="flex shrink-0 flex-wrap items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2"
               onSubmit={(event) => { event.preventDefault(); handleCreate(); }}
               onKeyDown={(event) => {
                 if (event.key === "Escape" && !busy) { event.preventDefault(); event.stopPropagation(); closeCreation(); }
@@ -268,7 +266,7 @@ export function TemplateEditorView(props: TemplateEditorViewProps): React.JSX.El
               <Input
                 ref={nameInputRef}
                 autoFocus
-                className="sm:max-w-56"
+                className="min-w-0 flex-1 sm:max-w-64"
                 placeholder="New preset name"
                 aria-label="New preset name"
                 maxLength={80}
@@ -276,21 +274,29 @@ export function TemplateEditorView(props: TemplateEditorViewProps): React.JSX.El
                 disabled={busy}
                 onChange={(event) => setNewName(event.target.value)}
               />
-              <Button type="submit" disabled={busy || !newName.trim()}>
-                {busy ? "Creating…" : "Create"}
-              </Button>
-              <Button type="button" variant="ghost" disabled={busy} onClick={closeCreation}>
-                Cancel
-              </Button>
+              <div className="flex shrink-0 gap-2">
+                <Button type="submit" size="sm" disabled={busy || !newName.trim()}>
+                  {busy ? "Creating…" : "Create"}
+                </Button>
+                <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={closeCreation}>
+                  Cancel
+                </Button>
+              </div>
             </form>
           ) : null}
-
           {loaded && confirmingDelete ? (
-            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm">
-              <span className="text-destructive">
-                Delete preset “{presetName(loaded)}”? This cannot be undone.
-              </span>
-              <div className="ml-auto flex gap-2">
+            <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-destructive">
+                  Delete preset “{presetName(loaded)}”? This cannot be undone.
+                </p>
+                {dirty ? (
+                  <p className="mt-1 text-xs text-warning">
+                    You have unsaved edits — they are not part of the preset and will be discarded from the editor.
+                  </p>
+                ) : null}
+              </div>
+              <div className="flex shrink-0 gap-2">
                 <Button type="button" variant="ghost" size="sm" disabled={busy} onClick={() => setConfirmingDelete(false)}>
                   Cancel
                 </Button>
@@ -300,41 +306,52 @@ export function TemplateEditorView(props: TemplateEditorViewProps): React.JSX.El
               </div>
             </div>
           ) : null}
-          {loaded && confirmingDelete && dirty ? (
-            <p className="text-xs text-warning">
-              You have unsaved edits — they are not part of the preset and will be discarded from the editor.
-            </p>
-          ) : null}
-          <Textarea
-            className="min-h-[360px] flex-1 resize-none rounded-lg bg-background/60 px-4 py-3 font-mono text-[13px] leading-relaxed shadow-none inset-shadow-sm"
-            style={{ tabSize: 2 }}
-            spellCheck={false}
-            aria-label={`${label} template content`}
-            disabled={!loaded || busy}
-            readOnly={isDefault}
-            aria-describedby={isDefault ? "default-preset-note" : undefined}
-            value={value}
-            onChange={(event) => setValue(event.target.value)}
-          />
+          {loaded ? (
+            <Textarea
+              className="min-h-0 min-w-0 flex-1 resize-none rounded-lg bg-background/60 px-3 py-2 font-mono text-[13px] leading-relaxed shadow-none"
+              style={{ tabSize: 2 }}
+              spellCheck={false}
+              aria-label={label + " template content"}
+              disabled={!loaded || busy}
+              readOnly={isDefault}
+              aria-describedby={isDefault ? "default-preset-note" : undefined}
+              value={value}
+              onChange={(event) => setValue(event.target.value)}
+            />
+          ) : (
+            <div className="flex min-h-0 flex-1 items-center justify-center gap-2 text-sm text-muted-foreground" role="status">
+              {status.kind === "info" ? <LoaderCircle className="size-4 animate-spin" /> : null}
+              {status.kind === "error" ? "Template could not be loaded." : "Loading template…"}
+            </div>
+          )}
           {isDefault ? (
-            <p id="default-preset-note" className="text-sm text-muted-foreground">
-              Default is bundled and read-only. Choose Add new preset… in the dropdown to make changes.
+            <p id="default-preset-note" className="shrink-0 text-xs text-muted-foreground">
+              Default is bundled and read-only. Choose “Add new preset…” to customize.
             </p>
           ) : null}
-          <div className="-mx-6 flex flex-col gap-3 border-t border-border px-6 pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-border pt-2.5">
             <p
               role="status"
-              className={cn("text-sm transition-colors duration-150", STATUS_CLASS[status.kind])}
+              className={cn("min-w-0 flex-1 text-xs", STATUS_CLASS[status.kind])}
             >
               {status.text}
             </p>
-            <div className="flex flex-wrap gap-2 sm:justify-end">
-              {dirty ? (
-                <Button type="button" variant="ghost" disabled={busy} onClick={handleDiscard}>
-                  Discard changes
-                </Button>
-              ) : null}
-              <Button type="button" disabled={!loaded || isDefault || !dirty || busy} onClick={handleSave}>
+            <div className="flex shrink-0 gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={!loaded || !dirty || busy}
+                onClick={handleDiscard}
+              >
+                Discard changes
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                disabled={!loaded || isDefault || !dirty || busy}
+                onClick={handleSave}
+              >
                 <Save />
                 {busy ? "Working…" : "Save"}
               </Button>

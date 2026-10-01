@@ -20,11 +20,23 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { LoaderCircle, Pencil } from "lucide-react";
+import type { ReactNode } from "react";
+import {
+  FileText,
+  FolderOpen,
+  GitBranch,
+  HardDrive,
+  ListFilter,
+  LoaderCircle,
+  Pencil,
+  TriangleAlert,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
+import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { ProjectControl } from "@/views/capability-form";
 import { invokeForResult } from "@/lib/bridge";
@@ -45,6 +57,7 @@ interface GitOpSpec {
   label: string;
   description: string;
   templateKey: EditableTemplateKey;
+  icon: LucideIcon;
 }
 
 const GIT_OPS: GitOpSpec[] = [
@@ -53,18 +66,21 @@ const GIT_OPS: GitOpSpec[] = [
     label: "Install .gitignore",
     description: "Write the repo-root .gitignore and prune nested ones.",
     templateKey: "gitignore",
+    icon: FileText,
   },
   {
     flag: "exclude",
     label: "Install .git/info/exclude",
     description: "Write the local, unshared exclude file.",
     templateKey: "gitexclude",
+    icon: ListFilter,
   },
   {
     flag: "lfs",
     label: "Enable Git LFS",
     description: "Run git lfs install and write the LFS .gitattributes block.",
     templateKey: "gitattributesLfs",
+    icon: HardDrive,
   },
 ];
 
@@ -144,120 +160,157 @@ export function GitView(props: GitViewProps): React.JSX.Element {
   };
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-4 p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Git setup</CardTitle>
-          <CardDescription>
-            Install .gitignore, .git/info/exclude, and/or Git LFS, and toggle{" "}
-            <code>ignore=dirty</code> per submodule in a project.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ProjectControl id="git-target" label="Target project" value={target} onChange={setTarget} />
-        </CardContent>
-      </Card>
-
-      <div className="space-y-2">
-        {GIT_OPS.map((op) => (
-          <div
-            key={op.flag}
-            className="flex items-center justify-between gap-3 rounded-lg border bg-card px-4 py-3"
-          >
-            <div className="min-w-0">
-              <p className="text-sm font-medium">{op.label}</p>
-              <p className="text-xs text-muted-foreground">{op.description}</p>
-            </div>
-            <div className="flex shrink-0 items-center gap-1.5">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label={`Edit ${op.label} template`}
-                onClick={() => onEditTemplate(op.templateKey)}
-              >
-                <Pencil />
-              </Button>
-              <Button type="button" onClick={() => onRun("git", { [op.flag]: true, target })}>
-                Run
-              </Button>
-            </div>
-          </div>
-        ))}
+    <div className="workspace-page flex h-full min-h-0 flex-col gap-3 p-4 sm:p-5">
+      <PageHeader title="Git setup" description="Configure repository files and local submodule visibility." />
+      <Card className="flex min-h-0 flex-1 flex-col gap-0 overflow-hidden p-0">
+      <CardContent className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-3 sm:p-4">
+      <div className="shrink-0">
+        <ProjectControl id="git-target" label="Target project" value={target} onChange={setTarget} />
       </div>
-
-      <div className="space-y-2">
-        <div className="flex flex-col gap-0.5 px-1">
-          <h2 className="text-sm font-medium">Ignore dirty submodules</h2>
-          <p className="text-xs text-muted-foreground">
-            Toggle <code>ignore=dirty</code> per submodule so its uncommitted changes stop
-            polluting <code>git status</code>. Writes the repo&apos;s local git config only.
-          </p>
-        </div>
-
-        {state.kind === "idle" ? (
-          <p className="px-1 text-sm text-muted-foreground">
-            Select a project to load its submodules.
-          </p>
-        ) : state.kind === "loading" ? (
-          <div className="flex items-center justify-center gap-2 py-10">
-            <LoaderCircle className="size-4 animate-spin" />
-            <p className="text-sm text-muted-foreground" role="status">
-              Loading submodules…
-            </p>
-          </div>
-        ) : state.kind === "error" ? (
-          <p className="px-1 text-sm text-destructive" role="alert">
-            {state.message}
-          </p>
-        ) : state.list.status === "notRepo" ? (
-          <p className="px-1 text-sm text-destructive" role="alert">
-            Not a git repository: {state.list.target}
-          </p>
-        ) : state.list.status === "noSubmodules" ? (
-          <p className="px-1 text-sm text-muted-foreground">
-            This repository has no submodules.
-          </p>
-        ) : (
-          <div className="space-y-2" role="group" aria-label="Submodules">
-            {rows.map((row) => {
-              const toggleId = `ignore-dirty-${row.name}`;
-              const gitmodulesHint = row.gitmodulesIgnore === "dirty" || row.gitmodulesIgnore === "all";
+      <section aria-labelledby="git-operations-heading" className="shrink-0 space-y-2 border-t border-border pt-3">
+        <h3 id="git-operations-heading" className="text-sm font-semibold">Repository actions</h3>
+          <ul className="divide-y divide-border">
+            {GIT_OPS.map((op) => {
+              const Icon = op.icon;
               return (
-                <div
-                  key={row.name}
-                  className="flex items-center justify-between gap-3 rounded-lg border bg-card px-4 py-3"
-                >
-                  <div className="min-w-0">
-                    <label htmlFor={toggleId} className="cursor-pointer text-sm font-medium">
-                      {row.path}
-                    </label>
-                    {row.name !== row.path ? (
-                      <p className="truncate text-xs text-muted-foreground">name: {row.name}</p>
-                    ) : null}
-                    {gitmodulesHint ? (
-                      <Badge variant="muted" className="mt-1.5">
-                        also ignored via .gitmodules
-                      </Badge>
-                    ) : null}
-                    {rowError[row.name] ? (
-                      <p className="mt-1 text-xs text-destructive" role="alert">
-                        {rowError[row.name]}
-                      </p>
-                    ) : null}
+                <li key={op.flag} className="flex items-center gap-3 py-2.5">
+                  <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm font-medium">{op.label}</h4>
+                    <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{op.description}</p>
                   </div>
-                  <Switch
-                    id={toggleId}
-                    checked={row.localDirty}
-                    disabled={pending[row.name] === true}
-                    onCheckedChange={(next) => onToggle(row, next)}
-                    aria-label={`ignore=dirty for ${row.path}`}
-                  />
-                </div>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <Button type="button" variant="ghost" size="icon" aria-label={"Edit " + op.label + " template"}
+                      title={"Edit " + op.label + " template"} onClick={() => onEditTemplate(op.templateKey)}>
+                      <Pencil aria-hidden="true" />
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" disabled={!target}
+                      aria-label={"Run " + op.label} onClick={() => onRun("git", { [op.flag]: true, target })}>Run</Button>
+                  </div>
+                </li>
               );
             })}
-          </div>
-        )}
+          </ul>
+      </section>
+      <section aria-labelledby="git-submodules-heading" className="flex min-h-36 shrink-0 flex-1 flex-col gap-2 border-t border-border pt-3">
+        <div className="shrink-0">
+          <h3 id="git-submodules-heading" className="text-sm font-semibold">Ignore dirty submodules</h3>
+          <p className="mt-1 text-xs text-muted-foreground">Local overrides in .git/config; tracked .gitmodules stays unchanged.</p>
+        </div>
+        <div className="min-h-0 flex-1 overflow-auto">
+          {state.kind === "idle" ? (
+            <SubmoduleNotice icon={FolderOpen} title="Choose a project">
+              Select a project above to load its submodules.
+            </SubmoduleNotice>
+          ) : state.kind === "loading" ? (
+            <SubmoduleNotice
+              icon={LoaderCircle}
+              iconClassName="animate-spin"
+              role="status"
+              title="Loading submodules"
+            >
+              Reading the selected repository&apos;s submodule configuration.
+            </SubmoduleNotice>
+          ) : state.kind === "error" ? (
+            <SubmoduleNotice
+              icon={TriangleAlert}
+              tone="error"
+              role="alert"
+              title="Could not load submodules"
+            >
+              {state.message}
+            </SubmoduleNotice>
+          ) : state.list.status === "notRepo" ? (
+            <SubmoduleNotice
+              icon={TriangleAlert}
+              tone="error"
+              role="alert"
+              title="Not a Git repository"
+            >
+              Not a Git repository: <code className="break-all font-mono">{state.list.target}</code>
+            </SubmoduleNotice>
+          ) : state.list.status === "noSubmodules" || rows.length === 0 ? (
+            <SubmoduleNotice icon={GitBranch} title="No submodules found">
+              This repository has no submodules.
+            </SubmoduleNotice>
+          ) : (
+            <div className="space-y-2" role="group" aria-label="Submodules">
+              {rows.map((row) => {
+                const toggleId = "ignore-dirty-" + row.name;
+                const isPending = pending[row.name] === true;
+                const gitmodulesHint = row.gitmodulesIgnore === "dirty" || row.gitmodulesIgnore === "all";
+                return (
+                  <div key={row.name} className="flex items-start gap-3 border-b border-border py-2.5 sm:items-center">
+                    <GitBranch className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                    <div className="min-w-0 flex-1">
+                      <label htmlFor={toggleId} className="block cursor-pointer break-all font-mono text-sm font-medium text-foreground">
+                        {row.path}
+                      </label>
+                      {row.name !== row.path ? (
+                        <p className="mt-1 break-all text-xs text-muted-foreground">name: {row.name}</p>
+                      ) : null}
+                      {gitmodulesHint ? (
+                        <Badge variant="muted" className="mt-2">
+                          also ignored via .gitmodules
+                        </Badge>
+                      ) : null}
+                      {rowError[row.name] ? (
+                        <p className="mt-2 break-words rounded-md border border-destructive/20 bg-destructive/5 px-2.5 py-2 text-xs text-destructive" role="alert">
+                          {rowError[row.name]}
+                        </p>
+                      ) : null}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      {isPending ? (
+                        <span className="flex items-center gap-1.5 text-xs text-muted-foreground" role="status">
+                          <LoaderCircle className="size-3.5 animate-spin" aria-hidden="true" />
+                          Saving…
+                        </span>
+                      ) : null}
+                      <Switch
+                        id={toggleId}
+                        checked={row.localDirty}
+                        disabled={isPending}
+                        onCheckedChange={(next) => onToggle(row, next)}
+                        aria-label={"ignore=dirty for " + row.path}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+      </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+
+function SubmoduleNotice({
+  icon: Icon,
+  title,
+  children,
+  tone = "neutral",
+  role,
+  iconClassName,
+}: {
+  icon: LucideIcon;
+  title: string;
+  children: ReactNode;
+  tone?: "neutral" | "error";
+  role?: "alert" | "status";
+  iconClassName?: string;
+}): React.JSX.Element {
+  const isError = tone === "error";
+  return (
+    <div className={"flex items-start gap-2 py-2 text-xs " + (isError ? "text-destructive" : "text-muted-foreground")} role={role}>
+      <Icon className={iconClassName ? "mt-0.5 size-4 shrink-0 " + iconClassName : "mt-0.5 size-4 shrink-0"} aria-hidden="true" />
+      <div className="min-w-0">
+        <p className="font-medium">{title}</p>
+        <div className="mt-1 break-words leading-5">{children}</div>
       </div>
     </div>
   );

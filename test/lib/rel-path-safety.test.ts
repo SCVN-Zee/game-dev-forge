@@ -2,8 +2,8 @@
  * test/lib/rel-path-safety.test.ts
  *
  * Pins the reject table of isSafeRelPath. This predicate is the last guard in
- * front of copyPackage's rm(recursive) — its inputs come from meta.json (written
- * by a possibly-older gdf) and from a hand-edited catalog file.
+ * Used by init layout validation before relative directories are joined to the
+ * Assets root.
  *
  * Two rows encode deliberately conservative behavior:
  *   "..hidden" → true   (only a WHOLE ".." segment is a traversal)

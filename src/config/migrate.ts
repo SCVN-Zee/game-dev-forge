@@ -2,7 +2,7 @@
  * config/migrate.ts — One-shot migration into ~/.scvn/.
  *
  * Sources (read-only, never deleted):
- *   0. ~/.config/scvn/{config,history.jsonl}
+ *   0. ~/.config/scvn/config
  *      — direct copy from previous gdf dir to new ~/.scvn dir
  *      — runs first so the rest of the migration treats it as a no-op
  *   1. ~/.config/sync-unity/config — maps SYNC_UNITY_* → SCVN_* keys
@@ -16,7 +16,6 @@ import path from "node:path";
 import type { ScvnConfig } from "./types.js";
 import {
   getConfigPath,
-  getHistoryPath,
   getPreviousScvnDir,
   getLegacyConfigPath,
   getScvnDir,
@@ -71,8 +70,6 @@ async function copyIfMissing(src: string, dst: string, label: string): Promise<b
 export interface MigrateOptions {
   /** Override gdf config path (for testing). */
   configPath?: string;
-  /** Override gdf history path (for testing). */
-  historyPath?: string;
   /** Override previous gdf dir ~/.config/scvn (for testing). */
   previousScvnDir?: string;
   /** Override legacy sync-unity config path (for testing). */
@@ -86,7 +83,6 @@ export interface MigrateOptions {
  */
 export async function migrate(opts: MigrateOptions = {}): Promise<void> {
   const configPath              = getConfigPath(opts.configPath);
-  const historyPath             = getHistoryPath(opts.historyPath);
   const previousScvnDir         = getPreviousScvnDir(opts.previousScvnDir);
   const legacyPath              = getLegacyConfigPath(opts.legacyConfigPath);
 
@@ -101,10 +97,8 @@ export async function migrate(opts: MigrateOptions = {}): Promise<void> {
     // -------------------------------------------------------------------------
     const copied: string[] = [];
     const previousConfigPath        = path.join(previousScvnDir, "config");
-    const previousHistoryPath       = path.join(previousScvnDir, "history.jsonl");
 
     if (await copyIfMissing(previousConfigPath,  configPath,  "config"))        copied.push("config");
-    if (await copyIfMissing(previousHistoryPath, historyPath, "history.jsonl")) copied.push("history.jsonl");
 
     if (copied.length > 0) {
       process.stderr.write(`[gdf] migrate: copied ${copied.length} file(s) from ${previousScvnDir} → ${getScvnDir()}\n`);

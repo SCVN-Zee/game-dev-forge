@@ -1,5 +1,3 @@
-import { splitRelPath } from "./package-tree.js";
-
 export interface InitLayoutTreeNode {
   name: string;
   path: string;
@@ -14,7 +12,7 @@ function compareNodes(a: InitLayoutTreeNode, b: InitLayoutTreeNode): number {
 export function buildInitLayoutTree(paths: readonly string[]): InitLayoutTreeNode[] {
   const root: InitLayoutTreeNode = { name: "", path: "", explicit: false, children: [] };
   for (const relativePath of paths) {
-    const segments = splitRelPath(relativePath);
+    const segments = relativePath.split(/[/\\]/).filter((segment) => segment.length > 0);
     let current = root;
     let currentPath = "";
     for (let index = 0; index < segments.length; index++) {

@@ -45,10 +45,6 @@ const bridge: ScvnBridge & { __selftest(ok: boolean): void } = {
     return ipcRenderer.invoke(CHANNEL_PICK_DIR, options ?? {}) as Promise<string | null>;
   },
 
-  pickDirectories(options?: { kind?: "dir" | "path"; title?: string; defaultPath?: string }): Promise<string[] | null> {
-    return ipcRenderer.invoke(CHANNEL_PICK_DIR, { ...(options ?? {}), multi: true }) as Promise<string[] | null>;
-  },
-
   pickSaveFile(options?: { title?: string; defaultPath?: string }): Promise<string | null> {
     return ipcRenderer.invoke(CHANNEL_PICK_SAVE, options ?? {}) as Promise<string | null>;
   },

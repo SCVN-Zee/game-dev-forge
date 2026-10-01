@@ -1,9 +1,9 @@
 /**
  * lib/rel-path-safety.ts — Reject relative paths that could escape their root.
  *
- * The last guard in front of copyPackage's `rm(target, { recursive: true })`.
- * Two untrusted sources feed it: `meta.json` (possibly written by an older
- * gdf) and the project-root-relative path resolveAddFolder derives from a picked folder.
+ * Last guard before user-supplied relative paths are joined to a project root.
+ * Used by init layout validation before combining relative directories with
+ * the Assets root.
  *
  * Deliberately conservative — segments are inspected, never resolved. `a/../b`
  * would resolve inside its root but is still rejected: cheap to satisfy, and it

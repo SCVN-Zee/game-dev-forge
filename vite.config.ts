@@ -29,7 +29,12 @@ export default defineConfig({
     __APP_VERSION__: JSON.stringify(pkgVersion),
   },
   base: "./",
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), {
+    name: "react-bits-license",
+    generateBundle() {
+      this.emitFile({ type: "asset", fileName: "react-bits-license.txt", source: readFileSync(new URL("./desktop/renderer/components/react-bits/LICENSE.md", import.meta.url), "utf8") });
+    },
+  }],
   resolve: {
     alias: { "@": rendererRoot, "@shared": sharedRoot },
   },

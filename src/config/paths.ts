@@ -22,10 +22,6 @@ export function getConfigPath(override?: string): string {
   return override ?? path.join(getScvnDir(), "config");
 }
 
-/** Default history file path: ~/.scvn/history.jsonl */
-export function getHistoryPath(override?: string): string {
-  return override ?? path.join(getScvnDir(), "history.jsonl");
-}
 
 /** Previous gdf state directory: ~/.config/scvn (used for one-shot self-migration). */
 export function getPreviousScvnDir(override?: string): string {

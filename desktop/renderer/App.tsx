@@ -18,7 +18,6 @@ import { CapabilityForm } from "@/views/capability-form";
 import { RunOpView } from "@/views/run-op";
 import { GitView } from "@/views/git-view";
 import { SettingsView } from "@/views/settings-view";
-import { PackagesView } from "@/views/packages-view";
 import { InitView } from "@/views/init-view";
 import { OnboardingView } from "@/views/onboarding-view";
 import { TemplateEditorView } from "@/views/template-editor";
@@ -189,15 +188,7 @@ export function App() {
     setRoute({ kind: "editor", key, label: ARTIFACT_LABELS[key] });
   }, []);
 
-  const [pkgNonce, setPkgNonce] = React.useState(0);
-  const backToForm = React.useCallback(() => {
-    setRoute((r) => {
-      // Returning from a packages run: bump the nonce so PackagesView remounts
-      // and reloads the library (a completed Add/Import changed it).
-      if (r.kind === "run" && r.command === "packages") setPkgNonce((n) => n + 1);
-      return { kind: "form" };
-    });
-  }, []);
+  const backToForm = React.useCallback(() => setRoute({ kind: "form" }), []);
 
   const title =
     route.kind === "run"
@@ -261,8 +252,6 @@ export function App() {
           <GitView key={selected.id} onRun={onRun} onEditTemplate={onEditTemplate} />
         ) : selected.page === "settings" ? (
           <SettingsView key={selected.id} />
-        ) : selected.page === "packages" ? (
-          <PackagesView key={`${selected.id}:${pkgNonce}`} onRun={onRun} />
         ) : selected.page === "init" ? (
           <InitView key={selected.id} onDirtyChange={setInitDirty} />
         ) : (

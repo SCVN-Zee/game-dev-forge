@@ -6,7 +6,6 @@ export type { ScvnConfig } from "./types.js";
 export {
   getScvnDir,
   getConfigPath,
-  getHistoryPath,
   getPreviousScvnDir,
   getLegacyConfigPath,
 } from "./paths.js";

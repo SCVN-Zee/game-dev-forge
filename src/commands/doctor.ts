@@ -17,7 +17,7 @@ import { realOutput } from "../ui/output.js";
 import type { OutputAdapter } from "../ui/output.js";
 import { run } from "../doctor/runner.js";
 import type { CheckReport, RunnerResult } from "../doctor/runner.js";
-import type { Check, CheckContext } from "../doctor/checks.js";
+import type { Check } from "../doctor/checks.js";
 import { CHECKS } from "../doctor/checks.js";
 
 // ---------------------------------------------------------------------------
@@ -63,7 +63,6 @@ function logReport(report: CheckReport, output: OutputAdapter): void {
  */
 export async function runDoctor(
   checks: Check[] = CHECKS,
-  ctx: CheckContext = {},
   output: OutputAdapter = realOutput,
 ): Promise<void> {
   output.intro("gdf doctor");
@@ -71,7 +70,7 @@ export async function runDoctor(
   let result: RunnerResult;
 
   try {
-    result = await run(checks, ctx);
+    result = await run(checks);
   } catch (err) {
     // Unexpected runner-level error (not a per-check error — those are caught
     // inside run() and reported as severity "fail").
