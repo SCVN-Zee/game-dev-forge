@@ -12,7 +12,6 @@ import * as React from "react";
 
 import type { CapabilitySpec } from "@shared/commands";
 import { Sidebar } from "@/components/sidebar";
-import { UpdateBanner } from "@/components/update-banner";
 
 const COLLAPSE_KEY = "scvn.sidebar.collapsed";
 
@@ -216,7 +215,6 @@ export function AppShell({
             <span aria-hidden="true" className="text-muted-foreground">/</span>
             <h1 id="page-title" className="truncate text-sm font-semibold">{title}</h1>
           </header>
-          <UpdateBanner />
           {banner ? <div onClickCapture={rememberSetupOpener}>{banner}</div> : null}
           <main aria-labelledby="page-title" className="app-content min-h-0 flex-1 overflow-auto">{children}</main>
         </div>

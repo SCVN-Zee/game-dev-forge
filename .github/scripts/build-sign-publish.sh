@@ -5,19 +5,11 @@
 #
 # Signing tiers, in precedence order (first satisfied wins):
 #   1. Apple Developer ID   (CSC_LINK set)          -> signed + notarized.
-#        No first-run Gatekeeper friction; auto-update works.
-#   2. Self-signed          (SCVN_SELFSIGN_P12 set) -> signed with a STABLE
-#        self-signed cert. Auto-update works because Squirrel.Mac only requires
-#        that an update satisfy the running app's code-signing designated
-#        requirement (which pins this cert), NOT that it be Apple-notarized.
-#        First run still shows "unidentified developer" (right-click -> Open).
+#        No first-run Gatekeeper friction.
+#   2. Self-signed          (SCVN_SELFSIGN_P12 set) -> signed, not notarized.
+#        First run shows "unidentified developer" (right-click -> Open).
 #   3. Ad-hoc               (neither)               -> valid ad-hoc signature
-#        (no "damaged" error) but CANNOT auto-update: ad-hoc pins a per-build
-#        cdhash, so no later build can satisfy the prior build's requirement.
-#
-# Emits the step output `signed=true|false` (true for tiers 1 and 2). The caller
-# keeps the electron-updater manifest + blockmaps only when signed=true, so an
-# ad-hoc release never advertises an update it cannot install.
+#        (no "damaged" error).
 #
 # Note on the empty-string trap: GitHub injects unset secrets as "" (defined but
 # empty), so every gate below uses `[ -n ... ]`, never `[ -z ... ]` on a
@@ -31,15 +23,12 @@ case "$CHANNEL" in
   *) echo "::error::unknown channel '$CHANNEL' (expected stable|beta)"; exit 1 ;;
 esac
 
-emit_signed() { echo "signed=$1" >>"${GITHUB_OUTPUT:-/dev/stdout}"; }
-
 if [ -n "${CSC_LINK:-}" ]; then
   echo "Signing mode: Apple Developer ID (signed + notarized)."
-  emit_signed true
   npm run "$BASE"
 
 elif [ -n "${SCVN_SELFSIGN_P12:-}" ]; then
-  echo "Signing mode: self-signed (auto-update works; not notarized; first run needs right-click -> Open)."
+  echo "Signing mode: self-signed (not notarized; first run needs right-click -> Open)."
   : "${SCVN_SELFSIGN_PASSWORD:?SCVN_SELFSIGN_PASSWORD is required alongside SCVN_SELFSIGN_P12}"
 
   KC="${RUNNER_TEMP:-/tmp}/scvn-selfsign.keychain-db"
@@ -75,15 +64,13 @@ elif [ -n "${SCVN_SELFSIGN_P12:-}" ]; then
   unset CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID 2>/dev/null || true
   export CSC_IDENTITY_AUTO_DISCOVERY=false
 
-  emit_signed true
   npm run "$BASE:selfsigned"
 
 else
-  echo "Signing mode: ad-hoc (valid signature, but cannot auto-update)."
+  echo "Signing mode: ad-hoc (valid signature)."
   # electron-builder treats a defined-but-empty CSC_LINK as an explicit cert
   # path; clear the partial signing env so it behaves like a clean ad-hoc build.
   unset CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID 2>/dev/null || true
   export CSC_IDENTITY_AUTO_DISCOVERY=false
-  emit_signed false
   npm run "$BASE:adhoc"
 fi

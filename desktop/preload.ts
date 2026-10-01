@@ -8,19 +8,13 @@
  */
 
 import { contextBridge, ipcRenderer } from "electron";
-import type { FromHost, PromptValue, RequestId, ScvnBridge, ToHost, UpdateChannel, UpdateStatus } from "./shared/ipc.js";
+import type { FromHost, PromptValue, RequestId, ScvnBridge, ToHost } from "./shared/ipc.js";
 
 const CHANNEL_TO_HOST = "scvn:to-host";
 const CHANNEL_FROM_HOST = "scvn:from-host";
 const CHANNEL_SELFTEST = "scvn:selftest";
 const CHANNEL_PICK_DIR = "scvn:pick-dir";
 const CHANNEL_PICK_SAVE = "scvn:pick-save";
-const CHANNEL_UPDATE_STATUS = "scvn:update-status";
-const CHANNEL_UPDATE_CHECK = "scvn:update-check";
-const CHANNEL_UPDATE_DOWNLOAD = "scvn:update-download";
-const CHANNEL_UPDATE_INSTALL = "scvn:update-install";
-const CHANNEL_UPDATE_GET_CHANNEL = "scvn:update-get-channel";
-const CHANNEL_UPDATE_SET_CHANNEL = "scvn:update-set-channel";
 
 const bridge: ScvnBridge & { __selftest(ok: boolean): void } = {
   invoke(command: string, args?: unknown): RequestId {
@@ -57,32 +51,6 @@ const bridge: ScvnBridge & { __selftest(ok: boolean): void } = {
 
   pickSaveFile(options?: { title?: string; defaultPath?: string }): Promise<string | null> {
     return ipcRenderer.invoke(CHANNEL_PICK_SAVE, options ?? {}) as Promise<string | null>;
-  },
-
-  onUpdateStatus(handler: (status: UpdateStatus) => void): () => void {
-    const listener = (_event: unknown, status: UpdateStatus): void => handler(status);
-    ipcRenderer.on(CHANNEL_UPDATE_STATUS, listener);
-    return () => ipcRenderer.removeListener(CHANNEL_UPDATE_STATUS, listener);
-  },
-
-  checkForUpdates(): void {
-    ipcRenderer.send(CHANNEL_UPDATE_CHECK);
-  },
-
-  downloadUpdate(): void {
-    ipcRenderer.send(CHANNEL_UPDATE_DOWNLOAD);
-  },
-
-  quitAndInstall(): void {
-    ipcRenderer.send(CHANNEL_UPDATE_INSTALL);
-  },
-
-  getUpdateChannel(): Promise<UpdateChannel> {
-    return ipcRenderer.invoke(CHANNEL_UPDATE_GET_CHANNEL) as Promise<UpdateChannel>;
-  },
-
-  setUpdateChannel(channel: UpdateChannel): void {
-    ipcRenderer.send(CHANNEL_UPDATE_SET_CHANNEL, channel);
   },
 
   /** Test-only: report the headless self-test outcome so main can exit. */

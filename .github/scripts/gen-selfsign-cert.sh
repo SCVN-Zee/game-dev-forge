@@ -1,14 +1,8 @@
 #!/usr/bin/env bash
-# Generate a STABLE self-signed macOS code-signing certificate for the
-# no-Apple-Developer-ID auto-update path, then print the two GitHub secrets to
-# set. Run this ONCE and reuse the same certificate forever.
+# Generate a self-signed macOS code-signing certificate and print the two
+# GitHub secrets used by the release signing workflow.
 #
 #   ./.github/scripts/gen-selfsign-cert.sh [output.p12]
-#
-# Why "reuse forever": macOS auto-update (Squirrel.Mac) accepts an update only
-# if it satisfies the running app's code-signing designated requirement, which
-# pins THIS certificate. Signing a later release with a different cert makes
-# every existing install refuse the update.
 #
 # Set the printed values as repository secrets
 # (Settings -> Secrets and variables -> Actions):
@@ -16,12 +10,12 @@
 #   SCVN_SELFSIGN_PASSWORD  the .p12 password
 #
 # Keep the .p12 and password in a safe place (a password manager). Anyone with
-# them can sign updates that existing installs will accept.
+# them can sign apps using this identity.
 set -euo pipefail
 
 OUT="${1:-scvn-selfsign.p12}"
 PASS="${SCVN_SELFSIGN_PASSWORD:-$(openssl rand -hex 16)}"
-CN="${SCVN_SELFSIGN_CN:-SCVN Self-Signed Updater}"
+CN="${SCVN_SELFSIGN_CN:-SCVN Self-Signed}"
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT

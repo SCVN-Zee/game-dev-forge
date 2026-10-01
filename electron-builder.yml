@@ -22,11 +22,8 @@ directories:
 # `files` scopes the app's own source to the bundled desktop output. It does NOT
 # exclude node_modules: electron-builder always additionally collects the
 # production `dependencies` from package.json into the asar. The host bundle
-# (host.cjs) and main bundle leave those deps external (tsup externalizes
-# `dependencies` by default — host.cjs holds require("execa")/require("fast-glob"),
-# main.cjs holds require("electron-updater")), so that auto-collection is what
-# makes them resolvable at runtime. Do NOT add `!node_modules/**` here — it would
-# break the host (execa/fast-glob) and the updater (electron-updater).
+# leaves dependencies such as execa and fast-glob external, so auto-collection
+# makes them resolvable at runtime. Do not exclude node_modules here.
 files:
   - "dist-desktop/**/*"
 
@@ -42,13 +39,12 @@ asarUnpack:
 
 npmRebuild: false
 
-# electron-updater consumes latest-mac.yml + the .zip (Squirrel.Mac updates from
-# the zip, not the dmg) published to the GitHub Release. The dmg remains the
-# first-install download. Both carry blockmaps for differential download.
+# Publish manual-install downloads without auto-update metadata.
 publish:
   provider: github
   owner: Supercent-Vietnam
   repo: scvn-cli
+  publishAutoUpdate: false
 
 mac:
   category: public.app-category.developer-tools
@@ -56,7 +52,6 @@ mac:
   target:
     - dir
     - dmg
-    - zip
   # Hardened runtime + entitlements are required for notarization. They only
   # take effect when a signing identity is present; unsigned local builds
   # (CSC_IDENTITY_AUTO_DISCOVERY=false) skip signing and ignore these.
@@ -66,3 +61,6 @@ mac:
   entitlementsInherit: desktop/build/entitlements.mac.inherit.plist
   # notarize with the ambient Apple credentials during a signed release.
   notarize: true
+
+dmg:
+  writeUpdateInfo: false

@@ -2,13 +2,8 @@
 
 // Custom electron-builder macOS signing hook (`mac.sign`).
 //
-// Signs the app with a STABLE self-signed certificate instead of an Apple
-// Developer ID. This is what makes Squirrel.Mac auto-update work WITHOUT a paid
-// Apple account: Squirrel validates that an update satisfies the running app's
-// code-signing designated requirement (DR). A self-signed cert produces a DR of
-// `identifier "<bundleid>" and certificate root = H"<hash>"`, which is identical
-// across every build signed by the same cert — so v(N+1) always satisfies v(N)'s
-// DR. (Ad-hoc signing pins a per-build `cdhash`, so it can never self-update.)
+// Signs the app with a self-signed certificate instead of an Apple Developer ID.
+// This provides a consistent signing identity without Apple notarization.
 //
 // Why a custom hook instead of electron-builder's built-in signing:
 //   1. `security find-identity -v` lists only TRUSTED identities, so an

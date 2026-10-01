@@ -345,7 +345,7 @@ npm run desktop:release   # signs (hardened runtime) + notarizes + staples
 Verify the result: `spctl -a -vv dist-desktop-pack/mac-arm64/scvn.app` (accepted)
 and `xcrun stapler validate dist-desktop-pack/scvn-*.dmg`.
 
-### Automated release & in-app updates
+### Automated releases & manual updates
 
 Releases are **tag-driven** on an Apple-Silicon runner; nothing runs on branch
 pushes:
@@ -364,31 +364,21 @@ git push origin main --tags
 ```
 
 Both workflows share `.github/scripts/build-sign-publish.sh`, which selects the
-**best available signing tier** and publishes the `.dmg` (first install) plus —
-when the build can self-update — the `.zip` + `latest-mac.yml` + blockmaps that
-`electron-updater` consumes:
+**best available signing tier** and publishes a `.dmg` for manual installation.
+Update manifests, differential-download blockmaps, and updater ZIPs are not shipped.
 
-| Tier | Enabled by | First run | Auto-update |
-| --- | --- | --- | --- |
-| Apple Developer ID + notarization | `CSC_LINK` (+ Apple trio) | opens normally | yes |
-| Stable self-signed cert | `SCVN_SELFSIGN_P12` | right-click → Open | yes (no Apple account) |
-| Ad-hoc fallback | no secrets | right-click → Open | no (manifest pruned) |
-
-macOS auto-update (Squirrel.Mac) only requires that an update satisfy the
-running app's code-signing **designated requirement** — i.e. be signed by the
-**same certificate** — not that it be Apple-notarized. A **stable self-signed
-cert** therefore enables auto-update with no Apple Developer account; only the
-first install carries the "unidentified developer" prompt. Ad-hoc signing pins a
-per-build `cdhash`, so no later build can satisfy the prior one — those releases
-prune `latest-mac.yml` so the app never advertises an update it cannot install.
+| Tier | Enabled by | First run |
+| --- | --- | --- |
+| Apple Developer ID + notarization | `CSC_LINK` (+ Apple trio) | opens normally |
+| Self-signed cert | `SCVN_SELFSIGN_P12` | right-click → Open |
+| Ad-hoc fallback | no secrets | right-click → Open |
 
 **Tier 1 secrets** (Settings → Secrets → Actions): `CSC_LINK` (base64 of the
 Developer ID Application `.p12`), `CSC_KEY_PASSWORD`, `APPLE_ID`,
 `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`.
 
-**Tier 2 secrets** (self-signed auto-update, free): generate a stable cert once,
-then set the two printed secrets — reuse the **same** cert for every release, or
-existing installs will refuse the update:
+**Tier 2 secrets** (self-signed, free): generate a certificate and set the
+two printed secrets:
 
 ```sh
 ./.github/scripts/gen-selfsign-cert.sh   # prints SCVN_SELFSIGN_P12 + SCVN_SELFSIGN_PASSWORD
@@ -399,20 +389,10 @@ set via `SCVN_TABS=fork,git,packages,init,settings` (baked into the renderer
 catalog and host registry); build that variant locally by prefixing any desktop
 script, e.g. `SCVN_TABS=fork,git,packages,init,settings npm run desktop:pack`.
 
-Shipped copies self-update via `electron-updater`: the update banner checks the
-GitHub Release on launch and, when a newer version exists, offers **Download
-update** → progress → **Restart & install**. Downloads are user-initiated
-(`autoDownload` is off); a downloaded update also installs on next quit. The
-update channel is user-selectable in **Settings → Updates**: **Stable** takes
-full releases only (`allowPrerelease` off), **Beta** also considers GitHub
-pre-releases (`allowPrerelease` on). Switching back to **Stable** from a beta
-build enables `allowDowngrade` so the app returns to the current stable even
-though it is a lower semver than the installed pre-release.
-The choice persists in `update-prefs.json` under the app's `userData` dir and is
-applied to the updater on launch; changing it re-checks immediately. First run
-defaults to the build's own track (a prerelease build → Beta, a plain release →
-Stable). In dev and the headless self-test the updater is not wired (no
-`app-update.yml`), so the banner stays hidden while the preference still persists.
+Install newer builds manually from this private repository’s GitHub Releases
+(repository access is required). Replace the app in Applications; existing
+settings are preserved. The app has no update checks, download/install controls,
+or update-channel preferences. Settings contains only Config and Doctor.
 
 Architecture: a sandboxed renderer (no Node access) draws the UI; the Electron
 main process owns the window, native dialogs, and an IPC broker; a long-lived

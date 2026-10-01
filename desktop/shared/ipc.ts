@@ -144,31 +144,6 @@ export type FromHost =
   | ProgressEventMessage;
 
 // ---------------------------------------------------------------------------
-// Auto-update (main process ⇆ renderer, separate from the host channel)
-// ---------------------------------------------------------------------------
-
-/**
- * Update lifecycle, pushed from the Electron main process (electron-updater) to
- * the renderer's update banner. `checking`/`not-available` are informational;
- * `available` invites a download; `downloading` streams progress; `downloaded`
- * invites a restart-to-install; `error` surfaces a failed check/download.
- */
-export type UpdateStatus =
-  | { phase: "checking" }
-  | { phase: "available"; version: string; notes?: string }
-  | { phase: "not-available" }
-  | { phase: "downloading"; percent: number; transferred: number; total: number; bytesPerSecond: number }
-  | { phase: "downloaded"; version: string }
-  | { phase: "error"; message: string };
-
-/**
- * The update track the app follows. `stable` restricts electron-updater to full
- * GitHub releases; `beta` also considers prereleases (allowPrerelease). Persisted
- * in the main process; chosen from Settings → Updates.
- */
-export type UpdateChannel = "stable" | "beta";
-
-// ---------------------------------------------------------------------------
 // Preload-exposed renderer API (window.scvn)
 // ---------------------------------------------------------------------------
 
@@ -195,18 +170,6 @@ export interface ScvnBridge {
 
   /** Open a native Save As dialog outside any run session. */
   pickSaveFile(options?: { title?: string; defaultPath?: string }): Promise<string | null>;
-  /** Subscribe to auto-update lifecycle events. Returns an unsubscribe fn. */
-  onUpdateStatus(handler: (status: UpdateStatus) => void): () => void;
-  /** Ask the main process to check GitHub Releases for a newer version. */
-  checkForUpdates(): void;
-  /** Begin downloading the available update (progress arrives via onUpdateStatus). */
-  downloadUpdate(): void;
-  /** Quit and install a downloaded update, relaunching on the new version. */
-  quitAndInstall(): void;
-  /** Read the persisted update channel (stable | beta). */
-  getUpdateChannel(): Promise<UpdateChannel>;
-  /** Persist the update channel; when packaged, retunes the updater and re-checks. */
-  setUpdateChannel(channel: UpdateChannel): void;
 }
 
 declare global {

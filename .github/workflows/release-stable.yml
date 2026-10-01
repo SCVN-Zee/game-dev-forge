@@ -1,16 +1,10 @@
 # STABLE release. A `v<version>` tag (e.g. v0.5.0) builds the macOS app and
-# publishes the dmg + zip to GitHub Releases.
+# publishes the dmg to GitHub Releases for manual installation.
 #
 # Signing is tiered (shared script build-sign-publish.sh), best available first:
-#   1. Apple Developer ID + notarization   (CSC_LINK secret)       — no first-run
-#      Gatekeeper friction; auto-updates.
-#   2. Stable self-signed cert              (SCVN_SELFSIGN_P12)     — auto-updates
-#      WITHOUT an Apple account; first run opens via right-click→Open.
-#   3. Ad-hoc fallback                      (no secrets)            — opens via
-#      right-click→Open but CANNOT auto-update.
-# The electron-updater manifest (latest-mac.yml), .zip, and blockmaps are KEPT
-# for tiers 1–2 (signed=true) so the app auto-updates; the ad-hoc tier prunes
-# them (Squirrel.Mac would reject the update) — see the prune step below.
+#   1. Apple Developer ID + notarization (CSC_LINK) — opens normally.
+#   2. Self-signed cert (SCVN_SELFSIGN_P12) — right-click→Open on first run.
+#   3. Ad-hoc fallback (no secrets) — right-click→Open on first run.
 #
 # Env split by tag, NOT by branch push (nothing runs on push to dev/main):
 #   - v<version> release (no prerelease id)  → this workflow      (stable)
@@ -21,7 +15,7 @@
 # Optional repository secrets:
 #   Tier 1 (Apple Developer ID + notarization):
 #     CSC_LINK, CSC_KEY_PASSWORD, APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID
-#   Tier 2 (self-signed auto-update; generate via .github/scripts/gen-selfsign-cert.sh):
+#   Tier 2 (self-signed; generate via .github/scripts/gen-selfsign-cert.sh):
 #     SCVN_SELFSIGN_P12 (base64 .p12), SCVN_SELFSIGN_PASSWORD
 # GITHUB_TOKEN (auto) publishes the release; contents:write is granted below.
 
@@ -77,7 +71,6 @@ jobs:
               --notes "Automated release $GITHUB_REF_NAME."
 
       - name: Build, sign, and publish
-        id: build
         env:
           # Generic build-time tab selection: ship the full tab set.
           SCVN_TABS: fork,git,packages,init,settings
@@ -87,42 +80,15 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          # Tier 2 — stable self-signed cert (auto-update without an Apple account).
+          # Tier 2 — self-signed cert.
           SCVN_SELFSIGN_P12: ${{ secrets.SCVN_SELFSIGN_P12 }}
           SCVN_SELFSIGN_PASSWORD: ${{ secrets.SCVN_SELFSIGN_PASSWORD }}
-          # Publish the release + updater metadata to this repo.
+          # Publish manual-install downloads to this repo.
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # Tiered signing (Developer ID -> self-signed -> ad-hoc) + `signed` output.
+        # Tiered signing (Developer ID -> self-signed -> ad-hoc).
         run: bash .github/scripts/build-sign-publish.sh stable
 
-      # Auto-update plumbing (latest-mac.yml, .zip, and the differential-download
-      # blockmaps) is kept when the build is signed — Developer ID OR the stable
-      # self-signed cert, both of which Squirrel.Mac accepts for updates. Only the
-      # ad-hoc fallback (signed=false) cannot self-update, so strip its manifest to
-      # avoid a broken "update available → install fails" prompt; keep the dmg,
-      # .zip, and GitHub's auto-added source archives.
-      - name: Prune updater plumbing when the build is unsigned
-        if: steps.build.outputs.signed != 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Ad-hoc/unsigned build cannot self-update; removing latest-mac.yml + blockmaps so users are not shown a broken update prompt."
-          for asset in $(gh release view "$GITHUB_REF_NAME" --json assets --jq '.assets[].name'); do
-            case "$asset" in
-              *.blockmap|latest-mac.yml)
-                echo "Deleting $asset"
-                gh release delete-asset "$GITHUB_REF_NAME" "$asset" --yes ;;
-            esac
-          done
-
-      # Publish (un-draft) the release as the FINAL step — only after every asset
-      # is uploaded and, for an unsigned build, the updater manifest is pruned.
-      # Until now the draft was un-drafted by hand, leaving a window in which the
-      # pushed tag was already discoverable to running apps' updaters while
-      # latest-mac.yml 404'd: draft-release assets are not served on the public
-      # releases/download/<tag>/ URL. Un-drafting here closes that window so the
-      # release and its manifest become visible atomically. Runs only if the
-      # build succeeded (a failed build never publishes a draft).
+      # Publish only after all manual-install assets have uploaded successfully.
       - name: Publish the release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
