@@ -220,7 +220,7 @@ config path and exits so you can edit the file by hand.
 ### `gdf doctor` — run environment checks
 
 Verifies runtime dependencies (`rsync`, `git`, `git-lfs`, `node`, plus on macOS:
-Beyond Compare, Unity editors, Fork, mergespecfile) and reports the store status
+bundled Node, Unity editors, Fork) and reports the store status
 (staged provenance per feature). Exit code is non-zero only when a check
 fails; the store line is informational and never fails the run. `git-lfs` is a
 **warn** (not fail) — it's needed only for `gdf git --lfs`.

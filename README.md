@@ -48,7 +48,7 @@ via the **?** button in the sidebar):
 1. **Unity projects root** — pick the folder that contains your Unity projects
    (for example `~/p`). This is where every project picker starts. Save it.
 2. **Doctor checklist** — a quick report of your environment (git, rsync,
-   Unity editors, Fork, Beyond Compare, …). Advisory only — you can finish
+   Unity editors, Fork, …). Advisory only — you can finish
    regardless and fix warnings later under Settings → Doctor.
 
 Choose **Skip for now** to enter the app without finishing; a banner reminds

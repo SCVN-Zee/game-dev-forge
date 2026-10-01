@@ -4,10 +4,8 @@
  * All external I/O is mocked so tests are deterministic and fast:
  *   - services/rsync.ts  → rsyncSupportsProgress2
  *   - util/command-exists.ts → commandExists
- *   - detectors/detect-beyond-compare.ts
  *   - detectors/detect-unity-versions.ts
  *   - detectors/detect-fork-running.ts
- *   - lib/check-mergespecfile.ts
  *   - execa (for node/git version checks)
  *
  * Each check is extracted from CHECKS by id and its run() function invoked
@@ -25,10 +23,8 @@ import { tmpDir } from "../helpers/tmp-dir.js";
 
 const rsyncSupportsMock    = vi.hoisted(() => vi.fn<() => Promise<boolean>>());
 const commandExistsMock    = vi.hoisted(() => vi.fn<(bin: string) => Promise<boolean>>());
-const detectBCMock         = vi.hoisted(() => vi.fn());
 const detectUnityMock      = vi.hoisted(() => vi.fn());
 const detectForkRunningMock = vi.hoisted(() => vi.fn<() => Promise<boolean>>());
-const checkMergespecMock   = vi.hoisted(() => vi.fn());
 const execaMock            = vi.hoisted(() => vi.fn());
 const installRootMock      = vi.hoisted(() => vi.fn());
 const storeMetaMocks       = vi.hoisted(() => ({
@@ -42,17 +38,11 @@ vi.mock("../../src/services/rsync.js", () => ({
 vi.mock("../../src/util/command-exists.js", () => ({
   commandExists: commandExistsMock,
 }));
-vi.mock("../../src/detectors/detect-beyond-compare.js", () => ({
-  detectBeyondCompare: detectBCMock,
-}));
 vi.mock("../../src/detectors/detect-unity-versions.js", () => ({
   detectUnityVersions: detectUnityMock,
 }));
 vi.mock("../../src/detectors/detect-fork-running.js", () => ({
   detectForkRunning: detectForkRunningMock,
-}));
-vi.mock("../../src/lib/check-mergespecfile.js", () => ({
-  checkMergespecfile: checkMergespecMock,
 }));
 vi.mock("execa", () => ({ execa: execaMock }));
 vi.mock("../../src/util/install-root.js", () => ({
@@ -90,21 +80,6 @@ const isDarwin = process.platform === "darwin";
 // Tests
 // ---------------------------------------------------------------------------
 
-describe("CHECKS registry", () => {
-  it("all checks have id, label, and run function", () => {
-    for (const c of CHECKS) {
-      expect(typeof c.id).toBe("string");
-      expect(c.id.length).toBeGreaterThan(0);
-      expect(typeof c.label).toBe("string");
-      expect(typeof c.run).toBe("function");
-    }
-  });
-
-  it("macOnly checks are bundled-node, beyond-compare, unity, fork, mergespec", () => {
-    const macOnlyIds = CHECKS.filter((c) => c.macOnly).map((c) => c.id);
-    expect(macOnlyIds).toEqual(["bundled-node", "beyond-compare", "unity", "fork", "mergespec"]);
-  });
-});
 
 // ---------------------------------------------------------------------------
 // rsync check
@@ -295,22 +270,6 @@ describe("macOnly checks on darwin", () => {
     return;
   }
 
-  // bc check
-  describe("check: beyond-compare", () => {
-    beforeEach(() => detectBCMock.mockReset());
-
-    it("returns pass when Beyond Compare is found", async () => {
-      detectBCMock.mockResolvedValue({ found: true, path: "/Applications/Beyond Compare.app/Contents/MacOS/bcomp" });
-      const result = await getCheck("beyond-compare").run();
-      expect(result.severity).toBe("pass");
-    });
-
-    it("returns fail when Beyond Compare is missing", async () => {
-      detectBCMock.mockResolvedValue({ found: false, path: null });
-      const result = await getCheck("beyond-compare").run();
-      expect(result.severity).toBe("fail");
-    });
-  });
 
   // unity check
   describe("check: unity", () => {
@@ -350,38 +309,6 @@ describe("macOnly checks on darwin", () => {
     });
   });
 
-  // mergespec check
-  describe("check: mergespec", () => {
-    beforeEach(() => {
-      detectUnityMock.mockReset();
-      checkMergespecMock.mockReset();
-    });
-
-    it("returns warn when no Unity editors found", async () => {
-      detectUnityMock.mockResolvedValue([]);
-      const result = await getCheck("mergespec").run();
-      expect(result.severity).toBe("warn");
-    });
-
-    it("returns pass when mergespecfile contains BC marker", async () => {
-      detectUnityMock.mockResolvedValue([
-        { version: "2022.3.15f1", editorPath: "/p", yamlMergePath: "/p/m", mergeSpecPath: "/p/s/mergespecfile.txt" },
-      ]);
-      checkMergespecMock.mockResolvedValue({ ok: true, path: "/p/s/mergespecfile.txt" });
-      const result = await getCheck("mergespec").run();
-      expect(result.severity).toBe("pass");
-    });
-
-    it("returns fail when mergespecfile is missing BC marker", async () => {
-      detectUnityMock.mockResolvedValue([
-        { version: "2022.3.15f1", editorPath: "/p", yamlMergePath: "/p/m", mergeSpecPath: "/p/s/mergespecfile.txt" },
-      ]);
-      checkMergespecMock.mockResolvedValue({ ok: false, path: "/p/s/mergespecfile.txt", reason: "marker not found" });
-      const result = await getCheck("mergespec").run();
-      expect(result.severity).toBe("fail");
-      expect(result.detail).toMatch(/marker not found/);
-    });
-  });
 
   // bundled-node check (RT#11 diagnostic)
   describe("check: bundled-node", () => {

@@ -18,10 +18,8 @@ import { rsyncSupportsProgress2 } from "../services/rsync.js";
 import { commandExists } from "../util/command-exists.js";
 import { findInstallRoot } from "../util/install-root.js";
 import { bundledNodeBinPath } from "../features/pack/bundled-node-paths.js";
-import { detectBeyondCompare } from "../detectors/detect-beyond-compare.js";
 import { detectUnityVersions } from "../detectors/detect-unity-versions.js";
 import { detectForkRunning } from "../detectors/detect-fork-running.js";
-import { checkMergespecfile } from "../lib/check-mergespecfile.js";
 import { formatBytes } from "../util/format-bytes.js";
 import {
   readPackagesStoreMeta,
@@ -182,12 +180,6 @@ async function checkStore(ctx?: CheckContext): Promise<CheckResult> {
   return { severity: "pass", detail: "nothing staged (gdf packages add)" };
 }
 
-async function checkBeyondCompare(): Promise<CheckResult> {
-  if (process.platform !== "darwin") return macOnlySkipped();
-  const result = await detectBeyondCompare();
-  if (result.found) return { severity: "pass", detail: result.path ?? undefined };
-  return { severity: "fail", detail: "Beyond Compare not found at expected path" };
-}
 
 async function checkUnity(): Promise<CheckResult> {
   if (process.platform !== "darwin") return macOnlySkipped();
@@ -208,20 +200,6 @@ async function checkFork(): Promise<CheckResult> {
   return { severity: "warn", detail: "Fork is running — quit Fork before applying git config" };
 }
 
-async function checkMergespec(): Promise<CheckResult> {
-  if (process.platform !== "darwin") return macOnlySkipped();
-  // Find the first available Unity version's mergespec path
-  const versions = await detectUnityVersions();
-  if (versions.length === 0) {
-    return { severity: "warn", detail: "No Unity editors found — cannot verify mergespecfile.txt" };
-  }
-  // Check the newest (first after sort) version's merge spec
-  const newestVersion = versions[0];
-  if (!newestVersion) return { severity: "warn", detail: "No Unity editors found" };
-  const result = await checkMergespecfile(newestVersion.mergeSpecPath);
-  if (result.ok) return { severity: "pass", detail: result.path };
-  return { severity: "fail", detail: result.reason };
-}
 
 // ---------------------------------------------------------------------------
 // Check registry (ordered for display)
@@ -234,8 +212,6 @@ export const CHECKS: Check[] = [
   { id: "node",      label: "Node ≥ 20",              run: checkNode },
   { id: "bundled-node", label: "Bundled Node",        macOnly: true, run: checkBundledNode },
   { id: "store",     label: "Store (~/.scvn/store)",  run: checkStore },
-  { id: "beyond-compare", label: "Beyond Compare",         macOnly: true, run: checkBeyondCompare },
   { id: "unity",     label: "Unity Hub editors",      macOnly: true, run: checkUnity },
   { id: "fork",      label: "Fork not running",       macOnly: true, run: checkFork },
-  { id: "mergespec", label: "mergespecfile.txt BC",   macOnly: true, run: checkMergespec },
 ];
