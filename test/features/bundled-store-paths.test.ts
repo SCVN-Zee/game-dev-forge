@@ -24,7 +24,7 @@ afterEach(() => {
 
 describe("bundledStoreRoot", () => {
   it("resolves <install-root>/store when store/ ships beside templates/", async () => {
-    const root = await tmpDir("scvn-bundle-");
+    const root = await tmpDir("gdf-bundle-");
     await mkdir(path.join(root, "templates"), { recursive: true });
     await mkdir(path.join(root, "store"), { recursive: true });
     const start = path.join(root, "dist");
@@ -34,7 +34,7 @@ describe("bundledStoreRoot", () => {
   });
 
   it("returns null when the install root has no sibling store/", async () => {
-    const root = await tmpDir("scvn-bundle-");
+    const root = await tmpDir("gdf-bundle-");
     await mkdir(path.join(root, "templates"), { recursive: true });
     const start = path.join(root, "dist");
     await mkdir(start, { recursive: true });
@@ -43,7 +43,7 @@ describe("bundledStoreRoot", () => {
   });
 
   it("returns null in a tree with no install root", async () => {
-    const root = await tmpDir("scvn-bundle-");
+    const root = await tmpDir("gdf-bundle-");
     const start = path.join(root, "x");
     await mkdir(start, { recursive: true });
 

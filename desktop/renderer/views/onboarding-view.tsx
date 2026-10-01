@@ -279,7 +279,7 @@ export function OnboardingView({ onDone, onSkip }: OnboardingViewProps): React.J
     <div className="mx-auto w-full max-w-4xl p-6">
       <Card className="onboarding-card">
           <CardHeader>
-            <CardTitle id="onboarding-dialog-title">Welcome to Supercent VN Tools</CardTitle>
+            <CardTitle id="onboarding-dialog-title">Welcome to Game Dev Forge</CardTitle>
             <CardDescription id="onboarding-dialog-description">
               {step === 1 ? (
                 <>

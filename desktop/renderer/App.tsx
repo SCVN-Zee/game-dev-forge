@@ -204,7 +204,7 @@ export function App() {
       ? route.title
       : route.kind === "editor"
         ? `Edit ${route.label}`
-        : (selected?.label ?? "Supercent VN Tools");
+        : (selected?.label ?? "Game Dev Forge");
 
   if (phase === "probing") {
     return (

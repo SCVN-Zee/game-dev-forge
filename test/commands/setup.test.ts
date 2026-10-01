@@ -334,9 +334,9 @@ describe("runSetupOp()", () => {
   // Surface strings + error path
   // -------------------------------------------------------------------------
 
-  it("intro carries the direct command name (scvn <op>)", async () => {
+  it("intro carries the direct command name (gdf <op>)", async () => {
     await runSetupOp("ignore-dirty", { target: "/projects/luna/Assets" }, fakePrompt([]));
-    expect(output.join("")).toContain("scvn ignore-dirty");
+    expect(output.join("")).toContain("gdf ignore-dirty");
   });
 
   it("sets exitCode 1 when a handler fails", async () => {

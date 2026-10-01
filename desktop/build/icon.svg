@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title">
+  <title id="title">Game Dev Forge — blacksmith's anvil with gamepad controls</title>
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#343640"/>
+      <stop offset=".48" stop-color="#20212A"/>
+      <stop offset="1" stop-color="#13141C"/>
+    </linearGradient>
+    <radialGradient id="heat">
+      <stop stop-color="#D65C2E" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#D65C2E" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2=".35" y2="1">
+      <stop stop-color="#FFE3A0"/>
+      <stop offset=".4" stop-color="#FFB94D"/>
+      <stop offset="1" stop-color="#F56C36"/>
+    </linearGradient>
+    <linearGradient id="edge" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#FFFFFF" stop-opacity=".2"/>
+      <stop offset=".5" stop-color="#FFFFFF" stop-opacity=".03"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity=".09"/>
+    </linearGradient>
+  </defs>
+  <rect x="72" y="88" width="880" height="872" rx="196" fill="#090A10" fill-opacity=".3"/>
+  <rect x="72" y="64" width="880" height="880" rx="196" fill="url(#tile)"/>
+  <rect x="76" y="68" width="872" height="872" rx="192" fill="none" stroke="url(#edge)" stroke-width="8"/>
+  <ellipse cx="512" cy="476" rx="352" ry="344" fill="url(#heat)"/>
+  <path d="M512 170 536 227 593 251 536 275 512 332 488 275 431 251 488 227Z" fill="url(#metal)"/>
+  <path d="M691 229 702 256 729 267 702 278 691 305 680 278 653 267 680 256Z" fill="#FFD891"/>
+  <!-- A long horn and square heel sit over a concave waist and broad, solid feet. -->
+  <path d="M352 368H824V508H720C657 508 617 540 603 586L588 644L656 710H740V786H320V710H400L464 646L447 582C434 533 407 508 346 508H309C247 508 181 461 144 418H352Z" fill="#090A10" fill-opacity=".35" transform="translate(0 16)"/>
+  <path d="M352 368H824V508H720C657 508 617 540 603 586L588 644L656 710H740V786H320V710H400L464 646L447 582C434 533 407 508 346 508H309C247 508 181 461 144 418H352Z" fill="url(#metal)"/>
+  <path d="M370 380H807" fill="none" stroke="#FFF0C5" stroke-opacity=".65" stroke-width="8" stroke-linecap="round"/>
+  <path d="M421 398H455V428H485V462H455V492H421V462H391V428H421Z" fill="#25232A"/>
+  <g fill="#25232A">
+    <circle cx="726" cy="411" r="16"/>
+    <circle cx="761" cy="446" r="16"/>
+    <circle cx="726" cy="481" r="16"/>
+    <circle cx="691" cy="446" r="16"/>
+    <rect x="547" y="438" width="66" height="12" rx="6" fill-opacity=".65"/>
+  </g>
+  <path d="M341 764H720" fill="none" stroke="#FFE2A0" stroke-opacity=".35" stroke-width="6" stroke-linecap="round"/>
+</svg>

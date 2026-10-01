@@ -18,7 +18,7 @@ import { toRealPath } from "../../src/util/real-path.js";
 
 describe("toRealPath", () => {
   it("resolves a symlinked path to its real location", async () => {
-    const root = await tmpDir("scvn-real-");
+    const root = await tmpDir("gdf-real-");
     const real = path.join(root, "real");
     const link = path.join(root, "link");
     await mkdir(real, { recursive: true });
@@ -29,7 +29,7 @@ describe("toRealPath", () => {
 
   it("agrees with what git reports as the repo root", async () => {
     // The actual regression: tmpDir hands back /var/... while git prints /private/var/...
-    const repo = await tmpDir("scvn-real-");
+    const repo = await tmpDir("gdf-real-");
     await mkdir(path.join(repo, "Assets"), { recursive: true });
     await execa("git", ["init", "-q"], { cwd: repo });
     const { stdout } = await execa("git", ["rev-parse", "--show-toplevel"], { cwd: repo });

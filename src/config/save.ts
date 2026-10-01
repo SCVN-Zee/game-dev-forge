@@ -35,7 +35,7 @@ export function quoteShell(value: string): string {
 // ---------------------------------------------------------------------------
 
 const HEADER = `\
-# scvn config — edit via: scvn config
+# gdf config — edit via: gdf config
 #
 # SCVN_PROJECTS_ROOT    — Unity projects discovery root path`;
 

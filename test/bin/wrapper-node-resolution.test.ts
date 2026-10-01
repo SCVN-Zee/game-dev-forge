@@ -1,7 +1,7 @@
 /**
- * test/bin/wrapper-node-resolution.test.ts — bin/scvn three-tier Node resolution.
+ * test/bin/wrapper-node-resolution.test.ts — bin/gdf three-tier Node resolution.
  *
- * Spawns the REAL bin/scvn against fake bundle layouts under tmp dirs with a controlled PATH, so
+ * Spawns the REAL bin/gdf against fake bundle layouts under tmp dirs with a controlled PATH, so
  * the bundled→system→onboard fall-through (and its exit codes) are exercised end-to-end. The
  * highest-blast-radius file in the repo — every command boots through it.
  *
@@ -32,8 +32,8 @@ describe("bin scripts — static contracts", () => {
     expect(m?.[1]).toBe(PINNED_NODE_VERSION);
   });
 
-  it("bin/scvn hardcodes the BUNDLED_NODE_SUBPATH literal (producer/consumer agree)", async () => {
-    const src = await readFile(path.join(REPO, "bin", "scvn"), "utf8");
+  it("bin/gdf hardcodes the BUNDLED_NODE_SUBPATH literal (producer/consumer agree)", async () => {
+    const src = await readFile(path.join(REPO, "bin", "gdf"), "utf8");
     expect(src).toContain(BUNDLED_NODE_SUBPATH); // "node/bin/node"
   });
 });
@@ -50,10 +50,10 @@ interface BundleOpts {
 }
 
 async function buildBundle(opts: BundleOpts): Promise<string> {
-  const root = await tmpDir("scvn-wrap-");
+  const root = await tmpDir("gdf-wrap-");
   await mkdir(path.join(root, "bin"), { recursive: true });
-  await copyFile(path.join(REPO, "bin", "scvn"), path.join(root, "bin", "scvn"));
-  await chmod(path.join(root, "bin", "scvn"), 0o755);
+  await copyFile(path.join(REPO, "bin", "gdf"), path.join(root, "bin", "gdf"));
+  await chmod(path.join(root, "bin", "gdf"), 0o755);
 
   const onboardDest = path.join(root, "bin", "_onboard-node.sh");
   if (opts.onboard !== undefined) await writeFile(onboardDest, opts.onboard);
@@ -73,14 +73,14 @@ async function buildBundle(opts: BundleOpts): Promise<string> {
 
 /** Write an executable `node` into a fresh dir; return the dir (to place on PATH). */
 async function fakeNodeDir(body: string): Promise<string> {
-  const d = await tmpDir("scvn-fakenode-");
+  const d = await tmpDir("gdf-fakenode-");
   await writeFile(path.join(d, "node"), body);
   await chmod(path.join(d, "node"), 0o755);
   return d;
 }
 
 function run(root: string, pathDirs: string[], env: Record<string, string> = {}) {
-  return execa(path.join(root, "bin", "scvn"), ["--version"], {
+  return execa(path.join(root, "bin", "gdf"), ["--version"], {
     env: { PATH: [...pathDirs, "/usr/bin", "/bin"].join(":"), ...env },
     extendEnv: false, // controlled PATH only — the real test env has node; we must hide it
     reject: false,    // inspect exit codes ourselves
@@ -90,7 +90,7 @@ function run(root: string, pathDirs: string[], env: Record<string, string> = {})
 const SH = (body: string) => `#!/bin/sh\n${body}\n`;
 const NODE_V = (v: string) => SH(`case "$1" in --version) echo v${v};; *) echo USING_SYSTEM;; esac`);
 
-describe.skipIf(!isDarwin)("bin/scvn resolution (macOS)", () => {
+describe.skipIf(!isDarwin)("bin/gdf resolution (macOS)", () => {
   it("tier 1: uses the bundled node when present + runnable", async () => {
     const root = await buildBundle({ bundledNode: SH("echo USING_BUNDLED") });
     const r = await run(root, []); // no node on PATH
@@ -115,7 +115,7 @@ describe.skipIf(!isDarwin)("bin/scvn resolution (macOS)", () => {
   });
 
   it("old system node (<20) → reaches onboarding (no premature set -e abort), propagates its exit", async () => {
-    const marker = path.join(await tmpDir("scvn-marker-"), "ran");
+    const marker = path.join(await tmpDir("gdf-marker-"), "ran");
     const root = await buildBundle({ onboard: SH('echo ran > "$SCVN_TEST_MARKER"\nexit 1') });
     const nodeDir = await fakeNodeDir(NODE_V("18.0.0"));
     const r = await run(root, [nodeDir], { SCVN_TEST_MARKER: marker });

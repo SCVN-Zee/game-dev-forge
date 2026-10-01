@@ -46,7 +46,7 @@ describe("needsProjectsRoot", () => {
   });
 
   it("removed import/export namespaces never need root (dispatch reports unknown command)", () => {
-    // `scvn import` / `scvn export` are no longer namespaces — the first positional
+    // `gdf import` / `gdf export` are no longer namespaces — the first positional
     // falls to subcommands and dispatch fails loudly, so the guard must not intercept.
     expect(needsProjectsRoot(inv({ subcommands: ["import"] }))).toBe(false);
     expect(needsProjectsRoot(inv({ subcommands: ["export"] }))).toBe(false);
@@ -59,7 +59,7 @@ describe("needsProjectsRoot", () => {
   });
 
   it("bootstrap ops need root unless --target / trailing args", () => {
-    // gitignore/gitexclude moved to `scvn git` in v0.5 — no longer SETUP_OPS.
+    // gitignore/gitexclude moved to `gdf git` in v0.5 — no longer SETUP_OPS.
     for (const s of ["ignore-dirty"]) {
       expect(needsProjectsRoot(inv({ subcommands: [s] }))).toBe(true);
       expect(needsProjectsRoot(inv({ subcommands: [s], hasTarget: true }))).toBe(false);
@@ -77,7 +77,7 @@ describe("needsProjectsRoot", () => {
     expect(needsProjectsRoot(inv({ subcommands: ["git"], hasGitOp: true }))).toBe(true);
     // Explicit --target short-circuits the picker.
     expect(needsProjectsRoot(inv({ subcommands: ["git"], hasGitOp: true, hasTarget: true }))).toBe(false);
-    // Bare `scvn git` (no op flag) prints the hint — never opens the picker.
+    // Bare `gdf git` (no op flag) prints the hint — never opens the picker.
     expect(needsProjectsRoot(inv({ subcommands: ["git"] }))).toBe(false);
     // Trailing positional is a usage error → dispatch reports it, not the guard.
     expect(needsProjectsRoot(inv({ subcommands: ["git", "extra"], hasGitOp: true }))).toBe(false);
@@ -157,7 +157,7 @@ describe("ensureProjectsRootConfigured", () => {
     expect(runConfig).toHaveBeenCalledOnce();
   });
 
-  it("launches scvn config then continues when it becomes valid", async () => {
+  it("launches gdf config then continues when it becomes valid", async () => {
     const resolveRoot = vi.fn(async () => null as string | null);
     resolveRoot.mockResolvedValueOnce(null).mockResolvedValue("/now/configured");
     const runConfig = vi.fn(async () => {});
@@ -168,7 +168,7 @@ describe("ensureProjectsRootConfigured", () => {
     expect(deps.log.step).toHaveBeenCalled();
   });
 
-  it("launches scvn config then fails if still invalid (no loop)", async () => {
+  it("launches gdf config then fails if still invalid (no loop)", async () => {
     const resolveRoot = vi.fn(async () => null); // never becomes valid
     const runConfig = vi.fn(async () => {});
     const deps = mkDeps({ resolveRoot, runConfig });

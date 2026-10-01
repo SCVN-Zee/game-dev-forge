@@ -1,7 +1,7 @@
 /**
  * services/brew.ts — Homebrew CLI wrappers.
  *
- * Ported from sync-unity/src/services/brew.ts with import paths adjusted for scvn.
+ * Ported from sync-unity/src/services/brew.ts with import paths adjusted for gdf.
  */
 
 import { execa } from "execa";

@@ -9,21 +9,21 @@
 /** Plain-text install guide written to the bundle root as INSTALL.txt. */
 export function buildInstallText(version: string): string {
   return [
-    `scvn bundle — v${version}`,
+    `Game Dev Forge bundle — v${version}`,
     ``,
-    `A self-contained scvn CLI with the Unity editor packages staged inside`,
+    `A self-contained Game Dev Forge CLI with the Unity editor packages staged inside`,
     `(under store/), plus a bundled Node runtime. Apply them to a Unity project:`,
     ``,
-    `1. Unzip this archive somewhere stable, e.g. ~/scvn-bundle`,
+    `1. Unzip this archive somewhere stable, e.g. ~/gdf-bundle`,
     `2. Add its bin/ to PATH (Node is bundled — nothing to install):`,
-    `      export PATH="$PATH:/absolute/path/to/scvn-bundle/bin"`,
+    `      export PATH="$PATH:/absolute/path/to/gdf-bundle/bin"`,
     `3. Apply the staged packages to your Unity project:`,
-    `      scvn packages import --to /path/to/YourGame`,
+    `      gdf packages import --to /path/to/YourGame`,
     ``,
-    `Inspect what is staged:  scvn doctor`,
+    `Inspect what is staged:  gdf doctor`,
     `(its store line shows "(bundled)"; the Node line shows "(bundled)")`,
     ``,
-    `The bundled Node is built for this Mac's CPU. On a different CPU, scvn falls`,
+    `The bundled Node is built for this Mac's CPU. On a different CPU, gdf falls`,
     `back to a system Node 20+ or guides you to install one on first run.`,
     ``,
   ].join("\n");

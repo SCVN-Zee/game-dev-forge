@@ -1,7 +1,7 @@
 /**
  * test/features/bundled-node-paths.test.ts — Layout contract for the bundled Node runtime.
  *
- * Pins the exact `node/bin/node` literal the bash wrapper (bin/scvn) hardcodes — if either side
+ * Pins the exact `node/bin/node` literal the bash wrapper (bin/gdf) hardcodes — if either side
  * drifts, this fails. (The wrapper-side string is cross-checked in the Phase 3 wrapper test.)
  */
 
@@ -20,6 +20,6 @@ describe("bundled-node-paths (layout contract)", () => {
 
   it("bundledNodeBinPath joins the subpath onto the install root", () => {
     expect(bundledNodeBinPath("/x")).toBe("/x/node/bin/node");
-    expect(bundledNodeBinPath("/opt/scvn-bundle")).toBe("/opt/scvn-bundle/node/bin/node");
+    expect(bundledNodeBinPath("/opt/gdf-bundle")).toBe("/opt/gdf-bundle/node/bin/node");
   });
 });

@@ -86,13 +86,13 @@ export function Sidebar({ items, selectedId, onSelect, collapsed, onToggle, onRe
       <div className={cn("flex h-16 items-center gap-2.5 px-4", collapsed && "justify-center px-0")}>
         <img
           src={logoUrl}
-          alt="Supercent VN Tools"
-          className="size-8 shrink-0 rounded-full"
+          alt="Game Dev Forge"
+          className="size-8 shrink-0"
           draggable={false}
         />
         {!collapsed && (
           <div className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate text-sm font-semibold">Supercent VN Tools</span>
+            <span className="truncate text-sm font-semibold">Game Dev Forge</span>
             <span className="mt-1 truncate text-xs text-muted-foreground">
               {APP_VERSION ? `v${APP_VERSION}` : "Control Center"}
             </span>

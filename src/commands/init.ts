@@ -1,5 +1,5 @@
 /**
- * commands/init.ts — Interactive and scriptable `scvn init` flow.
+ * commands/init.ts — Interactive and scriptable `gdf init` flow.
  */
 
 import { readFile } from "node:fs/promises";
@@ -35,7 +35,7 @@ export async function runInit(
   prompt: PromptAdapter = realPrompt,
   output: OutputAdapter = realOutput,
 ): Promise<void> {
-  output.intro("scvn init");
+  output.intro("gdf init");
   const presetTarget = args.target || process.env["SCVN_TARGET"] || null;
   if (!presetTarget && args.autoYes) {
     output.log.error("--yes requires an explicit target: pass --target <Assets dir> or set SCVN_TARGET");

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 #
-# bin/scvn — launcher that resolves a Node runtime, then runs the built CLI.
+# bin/gdf — launcher that resolves a Node runtime, then runs the built CLI.
 #
-# Three tiers, so an artist with no Node still works (the whole point of `scvn pack`):
-#   1. bundled Node at <root>/node/bin/node (shipped inside a `scvn pack` bundle)
+# Three tiers, so an artist with no Node still works (the whole point of `gdf pack`):
+#   1. bundled Node at <root>/node/bin/node (shipped inside a `gdf pack` bundle)
 #   2. a system Node >= 20
 #   3. guided install via bin/_onboard-node.sh (the only tier that runs without Node)
 #
@@ -24,8 +24,8 @@ if [ -x "$BUNDLED" ]; then
   if "$BUNDLED" --version >/dev/null 2>&1; then
     NODE_BIN="$BUNDLED"
   else
-    printf 'scvn: a bundled Node is present but will not run (wrong CPU arch, or quarantined on a locked-down Mac).\n' >&2
-    printf 'scvn: if it is quarantine, run:  xattr -dr com.apple.quarantine "%s"\n' "$ROOT" >&2
+    printf 'gdf: a bundled Node is present but will not run (wrong CPU arch, or quarantined on a locked-down Mac).\n' >&2
+    printf 'gdf: if it is quarantine, run:  xattr -dr com.apple.quarantine "%s"\n' "$ROOT" >&2
   fi
 fi
 
@@ -46,7 +46,7 @@ if [ -z "$NODE_BIN" ]; then
     elif command -v node >/dev/null 2>&1; then
       NODE_BIN="node"
     else
-      printf 'scvn: Node was installed but is not on this shell PATH yet — open a new terminal and re-run.\n' >&2
+      printf 'gdf: Node was installed but is not on this shell PATH yet — open a new terminal and re-run.\n' >&2
       exit 1
     fi
   else

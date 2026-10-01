@@ -86,14 +86,14 @@ export async function importPackages(
     if (!isSafeRelPath(pkg.relPath)) {
       reporter.onStatus({
         status: "failed",
-        error: `Unsafe path in store meta: ${pkg.label} (${pkg.relPath}) — re-run \`scvn packages export\``,
+        error: `Unsafe path in store meta: ${pkg.label} (${pkg.relPath}) — re-run \`gdf packages export\``,
       });
       return;
     }
     if (!(await exists(path.join(storeDir, pkg.relPath)))) {
       reporter.onStatus({
         status: "failed",
-        error: `Not staged: ${pkg.label} — run \`scvn packages export\` first`,
+        error: `Not staged: ${pkg.label} — run \`gdf packages export\` first`,
       });
       return;
     }

@@ -1,7 +1,7 @@
 /**
  * services/rsync.ts — rsync CLI wrappers with flag parity to bash common.sh rsync_copy.
  *
- * Ported from sync-unity/src/services/rsync.ts with import paths adjusted for scvn.
+ * Ported from sync-unity/src/services/rsync.ts with import paths adjusted for gdf.
  *
  * Flag parity (CRITICAL — Unity .meta GUID integrity depends on this):
  *   -a              always (archive: preserves perms, times, symlinks, etc.)

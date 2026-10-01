@@ -4,7 +4,7 @@
  *
  * getProjectsRoot is now a pure resolver + hard-fail backstop: the interactive
  * prompt + saveConfig was removed (moved to the startup first-run guard, which
- * launches `scvn config`). resolveProjectsRoot is the shared resolution helper.
+ * launches `gdf config`). resolveProjectsRoot is the shared resolution helper.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";

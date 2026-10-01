@@ -5,7 +5,7 @@
  *
  * One key per direct command: ignore-dirty, gitignore, gitexclude, lfs.
  * Fork routing is NOT part of this map — cli.tsx dispatches
- * `scvn fork` straight to commands/fork.ts.
+ * `gdf fork` straight to commands/fork.ts.
  *
  * gitexclude has its own handler (fenced block write) rather than the generic
  * template copy — `.git/info/exclude` is shared with other writers.

@@ -4,14 +4,14 @@
  * Runs once at CLI entry (after migrate + argv parse, before dispatch). When the
  * requested invocation needs the Unity projects root and the config is missing /
  * unset / points to a non-existent directory:
- *   - interactive TTY → launch `scvn config` (the ONLY writer of ~/.scvn/config),
+ *   - interactive TTY → launch `gdf config` (the ONLY writer of ~/.scvn/config),
  *     reload, re-validate once, then CONTINUE the original command (or fail if
  *     still unset — never loops the editor);
  *   - `-y` / non-TTY → hard-fail (exit 1) with a hint (cannot open an editor).
  *
  * Invocations that don't need the root — config/doctor/help/--version, the
  * migration hints, unknown/bare, and any run with an explicit --from/--to/--target
- * — skip the guard entirely (so the teammate `scvn import --to X` flow still runs
+ * — skip the guard entirely (so the teammate `gdf import --to X` flow still runs
  * on an empty config).
  */
 
@@ -24,7 +24,7 @@ import { ConfigRequiredError } from "../ui/errors.js";
 
 /**
  * Direct bootstrap-op commands (shared with cli.tsx dispatch).
- * `gitignore` / `gitexclude` were grouped under `scvn git` in v0.5 — they now
+ * `gitignore` / `gitexclude` were grouped under `gdf git` in v0.5 — they now
  * route to a migration hint, not to runSetupOp.
  */
 export const SETUP_OPS: Record<string, true> = {
@@ -41,7 +41,7 @@ export interface Invocation {
   hasTo: boolean;
   /** --target flag OR SCVN_TARGET env present. */
   hasTarget: boolean;
-  /** At least one `scvn git` op flag (--ignore/--exclude/--lfs) present. */
+  /** At least one `gdf git` op flag (--ignore/--exclude/--lfs) present. */
   hasGitOp?: boolean;
   /** --yes / -y promptless mode. */
   autoYes: boolean;
@@ -74,8 +74,8 @@ export function needsProjectsRoot(inv: Invocation): boolean {
   // errors, so only the exact single-token form needs the root.
   // `fork` no longer scans projects (Fork.app prefs only) → never needs the root.
   if (ns === null && SETUP_OPS[s] === true) return subs.length === 1 && !inv.hasTarget;
-  // `scvn git` needs the root only for a REAL op run that would reach the picker:
-  // an op flag is set, no explicit --target, single token. Bare `scvn git` (no
+  // `gdf git` needs the root only for a REAL op run that would reach the picker:
+  // an op flag is set, no explicit --target, single token. Bare `gdf git` (no
   // flag → prints the hint) and `--target` runs never open the picker.
   if (ns === null && s === "git") {
     return subs.length === 1 && !inv.hasTarget && Boolean(inv.hasGitOp);
@@ -93,7 +93,7 @@ export interface GuardDeps {
   resolveRoot: () => Promise<string | null>;
   /** True when `path` is an existing directory. */
   isDir: (path: string) => Promise<boolean>;
-  /** Launch the `scvn config` editor flow (blocking). */
+  /** Launch the `gdf config` editor flow (blocking). */
   runConfig: () => Promise<void>;
   /** Whether stdin is an interactive terminal. */
   isTTY: boolean;
@@ -148,8 +148,8 @@ export async function ensureProjectsRootConfigured(
     deps.fail(MISSING_PROJECTS_ROOT_MESSAGE);
   }
 
-  // Interactive: hand off to `scvn config`, then re-check ONCE (never loop).
-  deps.log.step("No usable SCVN_PROJECTS_ROOT — opening `scvn config` first…");
+  // Interactive: hand off to `gdf config`, then re-check ONCE (never loop).
+  deps.log.step("No usable SCVN_PROJECTS_ROOT — opening `gdf config` first…");
   await deps.runConfig();
 
   if (!(await hasValidRoot())) {

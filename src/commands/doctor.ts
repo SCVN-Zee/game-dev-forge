@@ -1,5 +1,5 @@
 /**
- * commands/doctor.ts — Linear clack flow for `scvn doctor`.
+ * commands/doctor.ts — Linear clack flow for `gdf doctor`.
  *
  * Replaces the Ink doctor screen. Runs the same check suite via the existing
  * doctor/runner, then prints each result as a structured log line (success /
@@ -66,7 +66,7 @@ export async function runDoctor(
   ctx: CheckContext = {},
   output: OutputAdapter = realOutput,
 ): Promise<void> {
-  output.intro("scvn doctor");
+  output.intro("gdf doctor");
 
   let result: RunnerResult;
 

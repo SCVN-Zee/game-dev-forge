@@ -5,7 +5,7 @@
  * install root is shared with the bundled-store probe (see util/install-root.ts);
  * this module just joins `templates/` onto that root and caches the result.
  *
- * Ported from sync-unity. Error message updated to reference scvn.
+ * Ported from sync-unity. Error message updated to reference gdf.
  */
 
 import fs from "node:fs/promises";
@@ -72,7 +72,7 @@ async function findTemplatesDir(): Promise<string> {
 
   const root = await findInstallRoot();
   if (root === null) {
-    throw new Error("scvn: could not locate templates/ directory");
+    throw new Error("gdf: could not locate templates/ directory");
   }
   _templatesDir = path.join(root, "templates");
   return _templatesDir;

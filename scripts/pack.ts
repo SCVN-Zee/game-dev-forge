@@ -1,9 +1,9 @@
 /**
- * scripts/pack.ts — Maintainer build-and-bundle entry (replaces the old `scvn pack` command).
+ * scripts/pack.ts — Maintainer build-and-bundle entry (replaces the old `gdf pack` command).
  *
  * Produces a self-contained deliverable: the built CLI (bin/dist/templates) + a copy of
- * ~/.scvn/store + a pinned Node runtime → pkg/scvn-bundle-<version>.zip. A teammate unzips it and
- * `scvn packages import` works with no source project AND no Node install. Run via the Makefile
+ * ~/.scvn/store + a pinned Node runtime → pkg/gdf-bundle-<version>.zip. A teammate unzips it and
+ * `gdf packages import` works with no source project AND no Node install. Run via the Makefile
  * (`make pack` / `make pack-no-node`) — it is a producer action, never a shipped user command.
  *
  * Non-interactive by design: no confirm, no dry-run. Fail-fast ordering mirrors the old flow —
@@ -57,7 +57,7 @@ export async function runPackBundle(opts: PackBundleOpts = {}): Promise<number> 
 
   const paths = await resolveBundleSourcePaths();
   if (paths === null) {
-    console.error("pack: could not locate the scvn install root (templates/ missing)");
+    console.error("pack: could not locate the gdf install root (templates/ missing)");
     return 1;
   }
 
@@ -115,14 +115,14 @@ export async function runPackBundle(opts: PackBundleOpts = {}): Promise<number> 
     : `node:    v${PINNED_NODE_VERSION} (${nodeArch}, ${formatBytes((await stat(nodeBinPath as string)).size)})`;
   console.log(
     [
-      `Building scvn bundle v${version}`,
+      `Building Game Dev Forge bundle v${version}`,
       nodeLine,
       `store:   ${shortenPath(paths.userStoreDir)}  (${formatBytes(storeBytes)})`,
       `archive: ${shortenPath(archive)}`,
     ].join("\n"),
   );
 
-  const staging = await mkdtemp(path.join(os.tmpdir(), "scvn-pack-"));
+  const staging = await mkdtemp(path.join(os.tmpdir(), "gdf-pack-"));
   try {
     await assembleBundle({
       installRoot:     paths.installRoot,

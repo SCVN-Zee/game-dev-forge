@@ -19,13 +19,13 @@ describe("assembleBundle", () => {
   beforeEach(() => syncMock.syncSingleFolder.mockReset().mockResolvedValue(undefined));
 
   it("copies bin/dist/templates from the install root + store from the user store parent", async () => {
-    const staging = await tmpDir("scvn-assemble-");
-    const scvnHome = await tmpDir("scvn-home-");
-    await mkdir(path.join(scvnHome, "store"), { recursive: true });
+    const staging = await tmpDir("gdf-assemble-");
+    const gdfHome = await tmpDir("gdf-home-");
+    await mkdir(path.join(gdfHome, "store"), { recursive: true });
 
     await assembleBundle({
       installRoot:     "/cli",
-      userStoreParent: scvnHome,
+      userStoreParent: gdfHome,
       stagingDir:      staging,
       version:         "1.2.3",
     });
@@ -36,7 +36,7 @@ describe("assembleBundle", () => {
       ["/cli", "bin"],
       ["/cli", "dist"],
       ["/cli", "templates"],
-      [scvnHome, "store"],
+      [gdfHome, "store"],
     ]);
     // every copy targets the staging dir
     for (const call of syncMock.syncSingleFolder.mock.calls) {
@@ -47,12 +47,12 @@ describe("assembleBundle", () => {
   it("ships an EMPTY store rather than dying when the producer never exported", async () => {
     // pack already warns that such a bundle carries no staged assets. Honor that:
     // rsyncing a directory that was never created exits 23 and kills the pack.
-    const staging = await tmpDir("scvn-assemble-");
-    const scvnHome = await tmpDir("scvn-home-"); // no store/ inside
+    const staging = await tmpDir("gdf-assemble-");
+    const gdfHome = await tmpDir("gdf-home-"); // no store/ inside
 
     await assembleBundle({
       installRoot:     "/cli",
-      userStoreParent: scvnHome,
+      userStoreParent: gdfHome,
       stagingDir:      staging,
       version:         "1.2.3",
     });
@@ -63,7 +63,7 @@ describe("assembleBundle", () => {
   });
 
   it("writes INSTALL.txt with the version + unzip/PATH/import steps", async () => {
-    const staging = await tmpDir("scvn-assemble-");
+    const staging = await tmpDir("gdf-assemble-");
 
     await assembleBundle({
       installRoot: "/cli", userStoreParent: "/home/.scvn", stagingDir: staging, version: "1.2.3",
@@ -71,21 +71,21 @@ describe("assembleBundle", () => {
 
     const txt = await readFile(path.join(staging, "INSTALL.txt"), "utf8");
     expect(txt).toContain("v1.2.3");
-    expect(txt).toContain("scvn packages import --to");
+    expect(txt).toContain("gdf packages import --to");
     expect(txt).toContain("PATH");
   });
 
   it("stages node/bin/node when nodeBinPath is set, leaving the 3-tree copy sequence intact", async () => {
-    const staging = await tmpDir("scvn-assemble-");
-    const scvnHome = await tmpDir("scvn-home-");
-    await mkdir(path.join(scvnHome, "store"), { recursive: true });
-    const src = await tmpDir("scvn-node-src-");
+    const staging = await tmpDir("gdf-assemble-");
+    const gdfHome = await tmpDir("gdf-home-");
+    await mkdir(path.join(gdfHome, "store"), { recursive: true });
+    const src = await tmpDir("gdf-node-src-");
     const srcBin = path.join(src, "node");
     await writeFile(srcBin, "NODE", "utf8");
     await chmod(srcBin, 0o755);
 
     await assembleBundle({
-      installRoot: "/cli", userStoreParent: scvnHome, stagingDir: staging, version: "1.2.3",
+      installRoot: "/cli", userStoreParent: gdfHome, stagingDir: staging, version: "1.2.3",
       nodeBinPath: srcBin,
     });
 
@@ -93,13 +93,13 @@ describe("assembleBundle", () => {
     const pairs = syncMock.syncSingleFolder.mock.calls.map((c) => [c[0], c[2]]);
     expect(pairs).toEqual([
       ["/cli", "bin"], ["/cli", "dist"], ["/cli", "templates"],
-      [scvnHome, "store"],
+      [gdfHome, "store"],
     ]);
     expect((await stat(path.join(staging, "node", "bin", "node"))).isFile()).toBe(true);
   });
 
   it("omits node/ when nodeBinPath is not set", async () => {
-    const staging = await tmpDir("scvn-assemble-");
+    const staging = await tmpDir("gdf-assemble-");
     await assembleBundle({
       installRoot: "/cli", userStoreParent: "/home/.scvn", stagingDir: staging, version: "1.2.3",
     });

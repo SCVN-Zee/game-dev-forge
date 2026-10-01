@@ -2,7 +2,7 @@
  * desktop/host/registry.ts — Maps command keys to host handlers.
  *
  * Registers `ping` (a dependency-free round-trip used by the headless
- * self-test) plus every scvn capability handler from `capabilities.ts`. The
+ * self-test) plus every gdf capability handler from `capabilities.ts`.
  * host registers all commands regardless of `SCVN_TABS`: tab hiding is a
  * renderer-visibility concern only (see the ⌘⇧. reveal in the renderer), so a
  * revealed tab's commands are genuinely invokable.
@@ -17,7 +17,7 @@ import { capabilities } from "./capabilities.js";
  * returns a structured result echoing its argument.
  */
 async function ping(session: HostSession, args: unknown): Promise<unknown> {
-  session.emitOutput({ level: "intro", message: "scvn ping" });
+  session.emitOutput({ level: "intro", message: "gdf ping" });
   session.emitProgress({ phase: "start", message: "pinging…" });
   session.emitOutput({ level: "step", message: "host received invoke" });
   session.emitProgress({ phase: "message", message: "working…" });

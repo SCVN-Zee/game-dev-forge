@@ -6,7 +6,7 @@
  *   2. rsyncCopyStream src/rel/ → target/rel/ (deleteAfter + optional progress)
  *   3. rsyncCopy src/rel.meta → target/rel.meta if .meta exists
  *
- * Ported from sync-unity wholesale with import paths adjusted for scvn.
+ * Ported from sync-unity wholesale with import paths adjusted for gdf.
  */
 
 import { mkdir, access } from "node:fs/promises";

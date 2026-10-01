@@ -29,7 +29,7 @@ describe("createZip", () => {
   );
 
   it("zips into a .tmp sibling with staging as cwd, then renames onto the final archive", async () => {
-    const dir = await tmpDir("scvn-zip-");
+    const dir = await tmpDir("gdf-zip-");
     const archive = path.join(dir, "bundle.zip");
 
     await createZip("/tmp/staging", archive);
@@ -43,7 +43,7 @@ describe("createZip", () => {
   });
 
   it("rethrows on non-zero zip and leaves no partial archive or tmp", async () => {
-    const dir = await tmpDir("scvn-zip-");
+    const dir = await tmpDir("gdf-zip-");
     const archive = path.join(dir, "a.zip");
     execaMock.mockRejectedValueOnce(new Error("zip: command not found"));
 
@@ -53,7 +53,7 @@ describe("createZip", () => {
   });
 
   it("replaces a stale archive (never updates in place)", async () => {
-    const dir = await tmpDir("scvn-zip-");
+    const dir = await tmpDir("gdf-zip-");
     const archive = path.join(dir, "bundle.zip");
     await writeFile(archive, "stale bytes", "utf8");
 

@@ -51,15 +51,15 @@ export async function resolveBundleSourcePaths(
   const scvnDir = getScvnDir(opts.scvnDirOverride);
   return {
     installRoot,
-    cliEntry:        path.join(installRoot, "dist", "cli.mjs"),
+    cliEntry: path.join(installRoot, "dist", "cli.mjs"),
     userStoreParent: scvnDir,
-    userStoreDir:    path.join(scvnDir, BUNDLED_STORE_DIRNAME),
-    nodeCacheDir:    path.join(scvnDir, "cache", "node"),
-    outDir:          path.join(installRoot, "pkg"),
+    userStoreDir: path.join(scvnDir, BUNDLED_STORE_DIRNAME),
+    nodeCacheDir: path.join(scvnDir, "cache", "node"),
+    outDir: path.join(installRoot, "pkg"),
   };
 }
 
-/** Version-stamped archive path: `<outDir>/scvn-bundle-<version>.zip`. */
+/** Version-stamped archive path: `<outDir>/gdf-bundle-<version>.zip`. */
 export function bundleArchivePath(outDir: string, version: string): string {
-  return path.join(outDir, `scvn-bundle-${version}.zip`);
+  return path.join(outDir, `gdf-bundle-${version}.zip`);
 }

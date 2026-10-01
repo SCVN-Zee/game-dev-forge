@@ -4,7 +4,7 @@
  * resolveProjectsRoot() is the shared resolver (config file → env, home-expanded,
  * or null when unset) used by BOTH the startup first-run guard and getProjectsRoot.
  * getProjectsRoot() is a thin resolver + hard-fail backstop — it never prompts and
- * never writes config. Missing-config handling (launch `scvn config`) lives in the
+ * never writes config. Missing-config handling (launch `gdf config`) lives in the
  * first-run guard; this backstop only fires if a picker is somehow reached with no
  * configured root.
  *
@@ -26,7 +26,7 @@ import { ProjectsRootError } from "../../ui/errors.js";
 
 /** Message for the backstop / first-run guard when no projects root is configured. */
 export const MISSING_PROJECTS_ROOT_MESSAGE =
-  "SCVN_PROJECTS_ROOT is not set or points to a missing directory — run `scvn config`, set the env var, or pass --from/--to/--target";
+  "SCVN_PROJECTS_ROOT is not set or points to a missing directory — run `gdf config`, set the env var, or pass --from/--to/--target";
 
 /**
  * Where a resolved projects root came from. `"env"` means the current

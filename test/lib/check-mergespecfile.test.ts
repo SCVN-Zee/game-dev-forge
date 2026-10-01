@@ -1,8 +1,8 @@
 /**
  * test/lib/check-mergespecfile.test.ts
  *
- * Ported from fork-unity-setup. Import paths updated to scvn src/.
- * Fixture paths updated to scvn test/fixtures/.
+ * Ported from fork-unity-setup. Import paths updated to gdf src/.
+ * Fixture paths updated to gdf test/fixtures/.
  */
 
 import path from "path";

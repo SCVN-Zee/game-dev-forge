@@ -7,12 +7,12 @@
  * loudly with the fix in hand.
  */
 
-export const SETUP_MIGRATION_HINT = `scvn setup was replaced in v0.3 — ops are top-level commands:
-  scvn setup luna-submodule  → scvn ignore-dirty
-  scvn setup gitignore       → scvn git --ignore
-  scvn setup gitexclude      → scvn git --exclude
-  scvn setup fork            → scvn fork
-  scvn setup all / (menu)    → removed — run ops individually`;
+export const SETUP_MIGRATION_HINT = `gdf setup was replaced in v0.3 — ops are top-level commands:
+  gdf setup luna-submodule  → gdf ignore-dirty
+  gdf setup gitignore       → gdf git --ignore
+  gdf setup gitexclude      → gdf git --exclude
+  gdf setup fork            → gdf fork
+  gdf setup all / (menu)    → removed — run ops individually`;
 
 /** Print the migration table to stderr. Caller is responsible for exit code. */
 export function printSetupMigrationHint(): void {

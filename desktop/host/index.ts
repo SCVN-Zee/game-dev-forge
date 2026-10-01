@@ -17,7 +17,7 @@ import { registry } from "./registry.js";
 const parentPort = (process as NodeJS.Process & { parentPort?: MessagePortMain }).parentPort;
 
 if (!parentPort) {
-  throw new Error("scvn host: process.parentPort unavailable — this entry must run as an Electron utilityProcess");
+  throw new Error("gdf host: process.parentPort unavailable — this entry must run as an Electron utilityProcess");
 }
 
 const port = parentPort;

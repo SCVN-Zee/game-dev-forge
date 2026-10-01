@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * cli.tsx — Entry point for scvn.
+ * cli.tsx — Entry point for gdf.
  *
  * Fast-path: -h / --version exit immediately.
  * Otherwise: run one-shot config migration, parse argv, then dispatch —
@@ -8,9 +8,9 @@
  *
  * Grammar: `packages` is the sole asset noun, keeping its export/import verbs;
  * bootstrap ops are direct top-level commands (fork, ignore-dirty, gitignore,
- * gitexclude). `scvn sync …`, bare `scvn all`, and `scvn setup …`
+ * gitexclude). `gdf sync …`, bare `gdf all`, and `gdf setup …`
  * print migration tables and exit 1 (clean breaks). Unknown commands and unknown
- * verbs fail loudly (exit 1) — only bare `scvn` helps.
+ * verbs fail loudly (exit 1) — only bare `gdf` helps.
  */
 
 import { migrate } from "./config/index.js";
@@ -78,7 +78,7 @@ await migrate();
 
 const args = parseArgv(argv);
 for (const warning of args.warnings) {
-  console.error(`scvn: ${warning}`);
+  console.error(`gdf: ${warning}`);
 }
 
 // Snapshot-store override: --store flag › SCVN_STORE_DIR env › none. Threaded to
@@ -87,7 +87,7 @@ const storeOverride = resolveStoreOverride(args.store);
 
 const firstSub = args.subcommands[0] ?? "";
 
-// Bare `scvn all` was the old sync batch — route it to the migration hint.
+// Bare `gdf all` was the old sync batch — route it to the migration hint.
 const effectiveNamespace =
   args.namespace ??
   (firstSub === "all" ? "sync" : null);
@@ -96,7 +96,7 @@ const effectiveNamespace =
 // First-run config guard
 //
 // Root-needing commands require a valid SCVN_PROJECTS_ROOT. When it is missing,
-// unset, or points to a non-existent dir: interactive runs launch `scvn config`
+// unset, or points to a non-existent dir: interactive runs launch `gdf config`
 // then continue; -y / non-TTY runs exit 1. Flag-driven (--from/--to/--target)
 // and exempt commands (config/doctor/help/--version/hints) skip the guard.
 // ---------------------------------------------------------------------------
@@ -110,13 +110,13 @@ function nounVerb(noun: string): string | undefined {
   const verbs = NOUN_VERBS[noun] ?? [];
   if (!firstSub) {
     if (args.autoYes) {
-      console.error(`--yes requires an explicit verb: scvn ${noun} ${verbs.join("|")}`);
+      console.error(`--yes requires an explicit verb: gdf ${noun} ${verbs.join("|")}`);
       process.exit(1);
     }
     return undefined;
   }
   if (verbs.includes(firstSub)) return firstSub;
-  console.error(`Unknown ${noun} subcommand: ${firstSub}\nUsage: scvn ${noun} [${verbs.join("|")}]`);
+  console.error(`Unknown ${noun} subcommand: ${firstSub}\nUsage: gdf ${noun} [${verbs.join("|")}]`);
   process.exit(1);
 }
 
@@ -163,7 +163,7 @@ try {
 
   } else if (firstSub === "init") {
     if (args.subcommands.length > 1) {
-      console.error(`Unexpected argument: ${args.subcommands[1]}\nUsage: scvn init [--target <Assets dir>] [--name <ProjectName>] [--layout <file>] [-n] [-y]`);
+      console.error(`Unexpected argument: ${args.subcommands[1]}\nUsage: gdf init [--target <Assets dir>] [--name <ProjectName>] [--layout <file>] [-n] [-y]`);
       process.exit(1);
     }
     await runInit({
@@ -177,12 +177,12 @@ try {
   } else if (firstSub === "fork") {
     // Trailing tokens fail loudly — a chained-op typo must not look like success.
     if (args.subcommands.length > 1) {
-      console.error(`Unexpected argument: ${args.subcommands[1]}\nUsage: scvn fork [-n] [-y]`);
+      console.error(`Unexpected argument: ${args.subcommands[1]}\nUsage: gdf fork [-n] [-y]`);
       process.exit(1);
     }
     // Fork configures Fork.app only (no project) — a stray --target must not look applied.
     if (args.target) {
-      console.error("scvn fork: --target is ignored — fork configures Fork.app, not a project");
+      console.error("gdf fork: --target is ignored — fork configures Fork.app, not a project");
     }
     await runFork({
       dryRun:  args.dryRun,
@@ -190,10 +190,10 @@ try {
     });
 
   } else if (SETUP_OPS[firstSub] === true) {
-    // Trailing tokens fail loudly — `scvn gitignore gitexclude` must not
+    // Trailing tokens fail loudly — `gdf gitignore gitexclude` must not
     // silently run only the first op (ops chain with &&, not positionals).
     if (args.subcommands.length > 1) {
-      console.error(`Unexpected argument: ${args.subcommands[1]}\nUsage: scvn ${firstSub} [--target <path>] [-n] [-y]`);
+      console.error(`Unexpected argument: ${args.subcommands[1]}\nUsage: gdf ${firstSub} [--target <path>] [-n] [-y]`);
       process.exit(1);
     }
     await runSetupOp(firstSub as SetupOp, {
@@ -204,9 +204,9 @@ try {
 
   } else if (firstSub === "git") {
     // Trailing positional fails loudly — ops are flags, not positionals
-    // (`scvn git ignore` is a mistake for `scvn git --ignore`).
+    // (`gdf git ignore` is a mistake for `gdf git --ignore`).
     if (args.subcommands.length > 1) {
-      console.error(`Unexpected argument: ${args.subcommands[1]}\nUsage: scvn git [--ignore] [--exclude] [--lfs] [--target <path>] [-n] [-y]`);
+      console.error(`Unexpected argument: ${args.subcommands[1]}\nUsage: gdf git [--ignore] [--exclude] [--lfs] [--target <path>] [-n] [-y]`);
       process.exit(1);
     }
     await runGitCommand({
@@ -219,16 +219,16 @@ try {
     });
 
   } else if (firstSub === "gitignore" || firstSub === "gitexclude") {
-    // Clean break (v0.5): grouped under `scvn git` — print the hint, fail loudly
+    // Clean break (v0.5): grouped under `gdf git` — print the hint, fail loudly
     // so a script using the old command surfaces the fix instead of silently
     // hitting the unknown-command arm.
     printGitGroupingHint();
     process.exit(1);
 
   } else if (firstSub) {
-    // Unrecognized command — fail loudly (a typo'd `scvn sycn` must not look
+    // Unrecognized command — fail loudly (a typo'd `gdf sycn` must not look
     // like success to a script).
-    console.error(`Unknown command: ${firstSub}\nRun \`scvn -h\` for usage.`);
+    console.error(`Unknown command: ${firstSub}\nRun \`gdf -h\` for usage.`);
     process.exit(1);
 
   } else {
@@ -243,7 +243,7 @@ try {
     process.exitCode = 0;
   } else if (err instanceof ProjectsRootError || err instanceof ConfigRequiredError) {
     // Config/root problem with no interactive recovery — stderr + exit 1.
-    process.stderr.write(`scvn: ${err.message}\n`);
+    process.stderr.write(`gdf: ${err.message}\n`);
     process.exitCode = 1;
   } else {
     // Unexpected — re-throw so the raw stack surfaces (unchanged behavior).

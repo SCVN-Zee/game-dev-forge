@@ -1,7 +1,7 @@
 /**
  * lib/exclude-block.ts — Fenced read/modify/write of a `.git/info/exclude` file.
  *
- * `info/exclude` is shared ground: scvn’s template block, other tools’ blocks,
+ * `info/exclude` is shared ground: gdf’s template block, other tools’ blocks,
  * and hand-written lines live in one file. Every write goes through a marker
  * fence so each owner refreshes only its own block.
  *
@@ -13,7 +13,7 @@ import path from "node:path";
 import { replaceMarkerBlock } from "./markers.js";
 import type { MarkerPair } from "./markers.js";
 
-/** scvn's own template block (`scvn git --exclude`). */
+/** gdf's own template block (`gdf git --exclude`). */
 export const SCVN_FENCE: MarkerPair = {
   begin: "# >>> scvn >>>",
   end: "# <<< scvn <<<",
@@ -28,7 +28,7 @@ export interface ExcludeBlockResult {
 export interface ApplyExcludeBlockOpts {
   /**
    * Text to fence into, replacing the file's current content. Pass `""` to
-   * discard a file proven to be entirely scvn-owned (the byte-equal migration
+   * discard a file proven to be entirely gdf-owned (the byte-equal migration
    * from the pre-fence template). Omit it to preserve foreign content.
    */
   baseText?: string;

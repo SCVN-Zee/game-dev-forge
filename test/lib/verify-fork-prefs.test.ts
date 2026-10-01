@@ -1,8 +1,8 @@
 /**
  * test/lib/verify-fork-prefs.test.ts
  *
- * Ported from fork-unity-setup. Import paths updated to scvn src/.
- * Fixture path updated to scvn test/fixtures/.
+ * Ported from fork-unity-setup. Import paths updated to gdf src/.
+ * Fixture path updated to gdf test/fixtures/.
  */
 
 import fs from "fs/promises";

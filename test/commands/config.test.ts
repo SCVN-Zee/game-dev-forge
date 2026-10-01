@@ -60,7 +60,7 @@ function setTTY(value: boolean): void {
 }
 
 async function makeTempDir(): Promise<string> {
-  return mkdtemp(path.join(os.tmpdir(), "scvn-config-test-"));
+  return mkdtemp(path.join(os.tmpdir(), "gdf-config-test-"));
 }
 
 function textCalls(prompt: { calls: Array<{ type: string }> }): number {
@@ -141,7 +141,7 @@ describe("runConfig() — interactive prompt", () => {
 
     expect(prompt.calls).toHaveLength(0);
     const content = await readFile(configPath, "utf8");
-    expect(content).toContain("scvn config"); // seeded header
+    expect(content).toContain("gdf config"); // seeded header
     expect(process.exitCode).toBeUndefined();
 
     await rm(dir, { recursive: true });

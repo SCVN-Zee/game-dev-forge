@@ -3,7 +3,7 @@
  *
  * Sources (read-only, never deleted):
  *   0. ~/.config/scvn/{config,history.jsonl}
- *      — direct copy from previous scvn dir to new ~/.scvn dir
+ *      — direct copy from previous gdf dir to new ~/.scvn dir
  *      — runs first so the rest of the migration treats it as a no-op
  *   1. ~/.config/sync-unity/config — maps SYNC_UNITY_* → SCVN_* keys
  *
@@ -56,10 +56,10 @@ async function copyIfMissing(src: string, dst: string, label: string): Promise<b
   try {
     await mkdir(path.dirname(dst), { recursive: true, mode: 0o700 });
     await copyFile(src, dst);
-    process.stderr.write(`[scvn] migrate:   ${label}: ${src} → ${dst}\n`);
+    process.stderr.write(`[gdf] migrate:   ${label}: ${src} → ${dst}\n`);
     return true;
   } catch (error) {
-    process.stderr.write(`[scvn] migrate: could not copy ${src} → ${dst}: ${String(error)}\n`);
+    process.stderr.write(`[gdf] migrate: could not copy ${src} → ${dst}: ${String(error)}\n`);
     return false;
   }
 }
@@ -69,11 +69,11 @@ async function copyIfMissing(src: string, dst: string, label: string): Promise<b
 // ---------------------------------------------------------------------------
 
 export interface MigrateOptions {
-  /** Override scvn config path (for testing). */
+  /** Override gdf config path (for testing). */
   configPath?: string;
-  /** Override scvn history path (for testing). */
+  /** Override gdf history path (for testing). */
   historyPath?: string;
-  /** Override previous scvn dir ~/.config/scvn (for testing). */
+  /** Override previous gdf dir ~/.config/scvn (for testing). */
   previousScvnDir?: string;
   /** Override legacy sync-unity config path (for testing). */
   legacyConfigPath?: string;
@@ -81,7 +81,7 @@ export interface MigrateOptions {
 
 /**
  * Migrate legacy configs into ~/.scvn/config.
- * Idempotent: no-ops if scvn config already exists.
+ * Idempotent: no-ops if gdf config already exists.
  * Best-effort: catches all errors and logs to stderr.
  */
 export async function migrate(opts: MigrateOptions = {}): Promise<void> {
@@ -91,13 +91,13 @@ export async function migrate(opts: MigrateOptions = {}): Promise<void> {
   const legacyPath              = getLegacyConfigPath(opts.legacyConfigPath);
 
   try {
-    // Guard: skip if scvn config already exists in new home.
+    // Guard: skip if gdf config already exists in new home.
     if (await fileExists(configPath)) {
       return;
     }
 
     // -------------------------------------------------------------------------
-    // Step 0: Copy from previous scvn dir (~/.config/scvn) into ~/.scvn
+    // Step 0: Copy from previous gdf dir (~/.config/scvn) into ~/.scvn
     // -------------------------------------------------------------------------
     const copied: string[] = [];
     const previousConfigPath        = path.join(previousScvnDir, "config");
@@ -107,11 +107,11 @@ export async function migrate(opts: MigrateOptions = {}): Promise<void> {
     if (await copyIfMissing(previousHistoryPath, historyPath, "history.jsonl")) copied.push("history.jsonl");
 
     if (copied.length > 0) {
-      process.stderr.write(`[scvn] migrate: copied ${copied.length} file(s) from ${previousScvnDir} → ${getScvnDir()}\n`);
+      process.stderr.write(`[gdf] migrate: copied ${copied.length} file(s) from ${previousScvnDir} → ${getScvnDir()}\n`);
     }
 
     // If the config itself was copied, no further migration is needed —
-    // the user already had a fully-formed scvn config.
+    // the user already had a fully-formed gdf config.
     if (await fileExists(configPath)) {
       return;
     }
@@ -128,7 +128,7 @@ export async function migrate(opts: MigrateOptions = {}): Promise<void> {
       try {
         raw = await readFile(legacyPath, "utf8");
       } catch (error) {
-        process.stderr.write(`[scvn] migrate: could not read ${legacyPath}: ${String(error)}\n`);
+        process.stderr.write(`[gdf] migrate: could not read ${legacyPath}: ${String(error)}\n`);
       }
 
       const parsed = parseConfigText(raw);
@@ -144,7 +144,7 @@ export async function migrate(opts: MigrateOptions = {}): Promise<void> {
       // Log any unrecognized keys so users are aware they were not migrated
       for (const key of Object.keys(parsed)) {
         if (!(key in LEGACY_FIELD_MAP)) {
-          process.stderr.write(`[scvn] migrate: unrecognized key in old config (not migrated): ${key}\n`);
+          process.stderr.write(`[gdf] migrate: unrecognized key in old config (not migrated): ${key}\n`);
         }
       }
     }
@@ -157,12 +157,12 @@ export async function migrate(opts: MigrateOptions = {}): Promise<void> {
     // Write new config
     await saveConfig(migrated, { configPath });
 
-    process.stderr.write(`[scvn] migrate: created ${configPath}\n`);
+    process.stderr.write(`[gdf] migrate: created ${configPath}\n`);
     for (const entry of migratedKeys) {
-      process.stderr.write(`[scvn] migrate:   ${entry}\n`);
+      process.stderr.write(`[gdf] migrate:   ${entry}\n`);
     }
   } catch (error) {
     // Best-effort — never block startup
-    process.stderr.write(`[scvn] migrate: unexpected error: ${String(error)}\n`);
+    process.stderr.write(`[gdf] migrate: unexpected error: ${String(error)}\n`);
   }
 }

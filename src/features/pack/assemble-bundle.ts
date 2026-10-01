@@ -33,51 +33,30 @@ export interface AssembleBundleOpts {
 }
 
 async function pathExists(target: string): Promise<boolean> {
-  try {
-    await access(target);
-    return true;
-  } catch {
-    return false;
-  }
+  try { await access(target); return true; } catch { return false; }
 }
 
-/**
- * Copy bin/dist/templates + store/ into the staging dir and write
- * INSTALL.txt. Throws if any copy fails (the caller cleans the staging dir).
- */
+/** Copy bin/dist/templates + store/ into staging and write INSTALL.txt. */
 export async function assembleBundle(opts: AssembleBundleOpts): Promise<void> {
   const reporter = opts.reporter ?? noopReporter;
   await mkdir(opts.stagingDir, { recursive: true });
-
   for (const tree of BUNDLE_CLI_TREES) {
     reporter.onStatus({ status: "running", detail: `staging ${tree}/…` });
-    await syncSingleFolder(opts.installRoot, opts.stagingDir, tree, {
-      onProgress: (progress) => reporter.onProgress(progress),
-    });
+    await syncSingleFolder(opts.installRoot, opts.stagingDir, tree, { onProgress: (progress) => reporter.onProgress(progress) });
   }
 
-  // A producer who never ran `scvn packages export` has no ~/.scvn/store at all.
-  // pack already WARNS that such a bundle ships no staged assets, so honor that
-  // promise: ship an empty store rather than dying in rsync (exit 23) on a
-  // source directory that was never created.
+  // A producer who never ran `gdf packages export` has no ~/.scvn/store at all.
+  // Bundle an empty store instead of failing rsync when the source was never created.
   reporter.onStatus({ status: "running", detail: `staging ${BUNDLED_STORE_DIRNAME}/…` });
   const storeSource = path.join(opts.userStoreParent, BUNDLED_STORE_DIRNAME);
   if (await pathExists(storeSource)) {
-    await syncSingleFolder(opts.userStoreParent, opts.stagingDir, BUNDLED_STORE_DIRNAME, {
-      onProgress: (progress) => reporter.onProgress(progress),
-    });
+    await syncSingleFolder(opts.userStoreParent, opts.stagingDir, BUNDLED_STORE_DIRNAME, { onProgress: (progress) => reporter.onProgress(progress) });
   } else {
     await mkdir(path.join(opts.stagingDir, BUNDLED_STORE_DIRNAME), { recursive: true });
   }
-
   if (opts.nodeBinPath) {
     reporter.onStatus({ status: "running", detail: "staging node/…" });
     await stageNodeRuntime({ nodeBinPath: opts.nodeBinPath, stagingDir: opts.stagingDir });
   }
-
-  await writeFile(
-    path.join(opts.stagingDir, "INSTALL.txt"),
-    buildInstallText(opts.version),
-    "utf8",
-  );
+  await writeFile(path.join(opts.stagingDir, "INSTALL.txt"), buildInstallText(opts.version), "utf8");
 }

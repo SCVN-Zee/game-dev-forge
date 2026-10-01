@@ -21,9 +21,9 @@ import { applyExcludeBlock, SCVN_FENCE } from "../../lib/exclude-block.js";
 import type { SyncReporter } from "../transfer/reporter.js";
 
 /**
- * sha256 of each RETIRED `templates/git-exclude` revision. Before fencing, scvn
+ * sha256 of each RETIRED `templates/git-exclude` revision. Before fencing, gdf
  * copied the template over `info/exclude` wholesale, so a file matching one of
- * these digests was written by scvn and contains nothing else — it is safe to
+ * these digests was written by gdf and contains nothing else — it is safe to
  * replace outright with the fenced form. The CURRENT revision is hashed at
  * runtime and checked alongside these.
  *
@@ -47,7 +47,7 @@ export interface SetupGitexcludeOpts {
   reporter?: Pick<SyncReporter, "onStatus" | "onLog">;
 }
 
-/** True when `excludePath` holds an unfenced copy of some scvn template revision. */
+/** True when `excludePath` holds an unfenced copy of some gdf template revision. */
 async function isPreFenceTemplate(
   excludePath: string,
   templatePath: string,
@@ -84,7 +84,7 @@ export async function setupGitexclude(
     const inner = (await readFile(templatePath, "utf8")).replace(/\n+$/, "");
 
     // A file that is verbatim some template revision predates fencing and holds
-    // nothing but scvn's own lines — rewrite it fenced instead of appending a
+    // nothing but gdf's own lines — rewrite it fenced instead of appending a
     // second copy. Anything else takes the additive path, which never removes
     // bytes it did not write.
     const isPreFence = await isPreFenceTemplate(excludePath, templatePath);
@@ -92,7 +92,7 @@ export async function setupGitexclude(
     if (dryRun) {
       reporter?.onStatus({
         status: "done",
-        detail: `would write the scvn block into ${path.relative(repoRoot, excludePath)}`,
+        detail: `would write the gdf block into ${path.relative(repoRoot, excludePath)}`,
       });
       return;
     }

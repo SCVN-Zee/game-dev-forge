@@ -1,5 +1,5 @@
 /**
- * desktop/host/capabilities.ts — Registry entries for the seven scvn commands.
+ * desktop/host/capabilities.ts — Registry entries for the seven gdf commands.
  *
  * Each entry builds a GUI PromptAdapter + OutputAdapter from the invocation's
  * session, parses the renderer's launch values into the handler's arg shape, and

@@ -1,12 +1,14 @@
-# Supercent VN Tools
+# Game Dev Forge
 
-A native macOS app that sets up and maintains Unity projects for the Supercent
-Vietnam workflow — merge-tool configuration, git artifacts, a shared package
+A native macOS app that sets up and maintains Unity projects — merge-tool
+configuration, git artifacts, a shared package
 library, and project scaffolding — entirely through a GUI: folder pickers
 instead of typed paths, streaming output, no terminal required.
 
-The same engine also ships as the `scvn` command-line tool; see
+The same engine also ships as the `gdf` command-line tool; see
 [CLI.md](CLI.md) for the full CLI reference.
+
+The project/package name is `game-dev-forge`; the executable is `gdf`.
 
 > **Requirements:** an Apple Silicon Mac. Most tabs need at least one Unity
 > project; the [Fork](#fork--merge-tool-for-unity-yaml) tab needs
@@ -18,23 +20,23 @@ The same engine also ships as the `scvn` command-line tool; see
 
 1. **Download** the latest release from
    [GitHub Releases](https://github.com/Supercent-Vietnam/scvn-cli/releases/latest)
-   — grab the `Supercent-VN-Tools-<version>-arm64.dmg` file.
-2. Open the `.dmg` and drag **Supercent VN Tools** into your
+   — grab the `Game Dev Forge-<version>-arm64.dmg` file.
+2. Open the `.dmg` and drag **Game Dev Forge** into your
    **Applications** folder.
 3. **Remove the quarantine flag (one-time).** The app is distributed without
    an Apple Developer certificate, so macOS Gatekeeper may refuse to open it
-   with *"Supercent VN Tools is damaged and can't be opened"* or an
+   with *"Game Dev Forge is damaged and can't be opened"* or an
    *"unidentified developer"* warning. Open **Terminal** and run:
 
    ```sh
-   xattr -dr com.apple.quarantine "/Applications/Supercent VN Tools.app"
+   xattr -dr com.apple.quarantine "/Applications/Game Dev Forge.app"
    ```
 
    After this the app opens normally. You only need to do this once per
    install (and again after replacing the app with a manually downloaded
    update).
 
-4. Launch **Supercent VN Tools** from Applications.
+4. Launch **Game Dev Forge** from Applications.
 
 ---
 
@@ -157,7 +159,7 @@ download, or install updates.
 
 ## Troubleshooting
 
-**"Supercent VN Tools is damaged and can't be opened"**
+**"Game Dev Forge is damaged and can't be opened"**
 The quarantine flag is set. Run the `xattr` command from the
 [install steps](#install).
 
@@ -183,8 +185,21 @@ with `brew install git-lfs` when you want that op.
 | `~/.scvn/store/` | The staged package library |
 | `~/.scvn/templates/` | Custom presets, selections, and legacy override backups |
 
+The rebrand keeps `~/.scvn/`, `SCVN_*` environment variables, and existing project
+markers unchanged so saved configuration, packages, and presets still work.
+The packaged desktop keeps its `scvn` application-data profile for window and UI
+settings; development launches keep their separate Electron profile.
+The CLI command is now `gdf`; update scripts that invoked `scvn`.
+
 ## The command line
 
 Every capability above has a CLI equivalent, plus more (one-line bootstrap,
 offline bundles for teammates). See
 [CLI.md](CLI.md).
+
+## Icon assets
+
+`desktop/build/icon.svg` is the editable anvil/gamepad artwork. Its exports are
+`desktop/build/icon.png` (1024px), `desktop/build/icon.icns` (macOS), and
+`desktop/renderer/assets/logo.png` (512px sidebar image). Keep these in sync when
+revising the artwork; the rounded tile and transparent margin belong to the asset.

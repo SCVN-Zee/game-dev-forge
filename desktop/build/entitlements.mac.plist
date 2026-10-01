@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  Hardened-runtime entitlements for the signed scvn.app (Phase 6).
+  Hardened-runtime entitlements for Game Dev Forge.app.
 
   Electron/V8 need JIT + writable-executable memory under the hardened runtime;
   disable-library-validation lets the app load the Electron framework and any

@@ -65,7 +65,7 @@ describe("exportPackages", () => {
     mockFormatBytes.mockImplementation((n: number) => `${n}B`);
     mockGetRepoInfo.mockResolvedValue({ root: "/fake/hub", branch: "main" });
 
-    const root = join(tmpdir(), `scvn-export-pkgs-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    const root = join(tmpdir(), `gdf-export-pkgs-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     src      = join(root, "hub"); // the source project ROOT
     storeDir = join(root, "store");
     // Fixtures: flat package, nested package with sidecar

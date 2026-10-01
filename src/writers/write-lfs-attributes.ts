@@ -21,11 +21,11 @@ export const LFS_MARKER_END = "# END scvn-lfs";
 
 /**
  * Load the Unity binary-asset LFS block from the bundled template (or a user
- * override at <scvnDir>/templates/gitattributes-lfs). Trailing newlines are
+ * override at <gdfDir>/templates/gitattributes-lfs). Trailing newlines are
  * stripped so the inserted marker block does not open a blank line before its
  * closing END marker — same guard as loadUnityGitAttributesBlock.
  *
- * `overrideRoot` (the scvn dir) is honored only for test isolation; production
+ * `overrideRoot` (the gdf dir) is honored only for test isolation; production
  * passes nothing so the real `~/.scvn/templates/` override layer applies.
  */
 export async function loadUnityLfsAttributesBlock(overrideRoot?: string): Promise<string> {
@@ -36,7 +36,7 @@ export async function loadUnityLfsAttributesBlock(overrideRoot?: string): Promis
 export interface LfsAttrsInput {
   /** Absolute path of the `.gitattributes` to write (repo root). */
   gitattributesPath: string;
-  /** @internal scvn-dir override for the template read path (test isolation). */
+  /** @internal gdf-dir override for the template read path (test isolation). */
   overrideRoot?: string;
 }
 

@@ -33,7 +33,7 @@ describe("resolveEffectiveStoreDir", () => {
   });
 
   it("user store with the feature's meta → user root (bundled ignored)", async () => {
-    const user = await tmpDir("scvn-user-");
+    const user = await tmpDir("gdf-user-");
     await writePackagesStoreMeta(PACKAGES_META, user);
     _setBundledStoreRootForTest("/bundled/store");
 
@@ -42,7 +42,7 @@ describe("resolveEffectiveStoreDir", () => {
   });
 
   it("empty user store but bundled present → bundled root", async () => {
-    const user = await tmpDir("scvn-user-");
+    const user = await tmpDir("gdf-user-");
     _setBundledStoreRootForTest("/bundled/store");
 
     expect(await resolveEffectiveStoreDir("packages", { userStoreDir: user }))
@@ -50,14 +50,14 @@ describe("resolveEffectiveStoreDir", () => {
   });
 
   it("neither user nor bundled → null", async () => {
-    const user = await tmpDir("scvn-user-");
+    const user = await tmpDir("gdf-user-");
     _setBundledStoreRootForTest(null);
 
     expect(await resolveEffectiveStoreDir("packages", { userStoreDir: user })).toBeNull();
   });
 
   it("empty packages[] in user meta counts as nothing staged → bundled", async () => {
-    const user = await tmpDir("scvn-user-");
+    const user = await tmpDir("gdf-user-");
     await writePackagesStoreMeta(EMPTY_PACKAGES_META, user);
     _setBundledStoreRootForTest("/bundled/store");
 

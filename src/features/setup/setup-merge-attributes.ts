@@ -2,7 +2,7 @@
  * features/setup/setup-merge-attributes.ts — Apply the Unity smart-merge
  * `.gitattributes` block to a project.
  *
- * This is the git-side half of Fork's Unity YAML merge setup: `scvn fork`
+ * This is the git-side half of Fork's Unity YAML merge setup: `gdf fork`
  * configures Fork.app's merge tool (machine-level), and this writes the
  * repo-root `.gitattributes` marker block (`# BEGIN/END fork-unity-setup`,
  * sourced from `templates/gitattributes-merge`) that tells git to route Unity

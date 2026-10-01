@@ -1,5 +1,5 @@
 /**
- * doctor/checks.ts — Registry of environment checks for `scvn doctor`.
+ * doctor/checks.ts — Registry of environment checks for `gdf doctor`.
  *
  * Each check exposes:
  *   id       — machine-readable identifier
@@ -86,7 +86,7 @@ async function checkGit(): Promise<CheckResult> {
 }
 
 /**
- * git-lfs is needed only for the optional `scvn git --lfs` op, so a missing
+ * git-lfs is needed only for the optional `gdf git --lfs` op, so a missing
  * binary is a warn (informational), NOT a fail — it must not flip doctor's exit
  * code the way a missing git/node would.
  */
@@ -95,7 +95,7 @@ async function checkGitLfs(): Promise<CheckResult> {
   if (found) return { severity: "pass" };
   return {
     severity: "warn",
-    detail: "git-lfs not found — needed only for `scvn git --lfs`. Install: brew install git-lfs",
+    detail: "git-lfs not found — needed only for `gdf git --lfs`. Install: brew install git-lfs",
   };
 }
 
@@ -165,7 +165,7 @@ async function checkBundledNode(): Promise<CheckResult> {
 async function checkStore(ctx?: CheckContext): Promise<CheckResult> {
   // Resolve the effective store (explicit override, else user, else CLI-bundled)
   // so doctor reports what an import would actually apply, labelling the source.
-  // The override threads from `scvn doctor --store <dir>`.
+  // The override threads from `gdf doctor --store <dir>`.
   const override = ctx?.storeOverride;
   const packagesEff = await resolveEffectiveStoreDir("packages", { override }).catch(() => null);
   const packagesMeta = await readPackagesStoreMeta(packagesEff?.storeDir).catch(() => null);
@@ -179,7 +179,7 @@ async function checkStore(ctx?: CheckContext): Promise<CheckResult> {
       detail: `packages: ${packagesMeta.packages.length} staged, ${formatBytes(totalBytes)}${packagesTag}`,
     };
   }
-  return { severity: "pass", detail: "nothing staged (scvn packages add)" };
+  return { severity: "pass", detail: "nothing staged (gdf packages add)" };
 }
 
 async function checkBeyondCompare(): Promise<CheckResult> {

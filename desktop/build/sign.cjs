@@ -29,11 +29,11 @@ exports.default = async function sign(opts) {
   const keychain = process.env.SCVN_SIGN_KEYCHAIN;
 
   if (!appPath) {
-    throw new Error("scvn sign hook: electron-builder passed no app path");
+    throw new Error("gdf sign hook: electron-builder passed no app path");
   }
   if (!identity || !keychain) {
     throw new Error(
-      "scvn sign hook: SCVN_SIGN_IDENTITY and SCVN_SIGN_KEYCHAIN must be set",
+      "gdf sign hook: SCVN_SIGN_IDENTITY and SCVN_SIGN_KEYCHAIN must be set",
     );
   }
 

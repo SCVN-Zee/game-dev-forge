@@ -127,7 +127,7 @@ export async function loadConfig(opts: LoadConfigOptions = {}): Promise<ScvnConf
     if (value) {
       // Deprecation notice — visible in stderr for tooling awareness
       process.stderr.write(
-        `[scvn] deprecated: ${envKey} env var; rename to SCVN_${envKey.replace("SYNC_UNITY_", "")}\n`
+        `[gdf] deprecated: ${envKey} env var; rename to SCVN_${envKey.replace("SYNC_UNITY_", "")}\n`
       );
       (config as Record<string, string>)[field] = value;
     }

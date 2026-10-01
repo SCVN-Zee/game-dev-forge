@@ -94,7 +94,7 @@ describe("loadConfig", () => {
   let savedEnv: NodeJS.ProcessEnv;
 
   beforeEach(async () => {
-    tmpDir = join(tmpdir(), `scvn-load-test-${Date.now()}`);
+    tmpDir = join(tmpdir(), `gdf-load-test-${Date.now()}`);
     await mkdir(tmpDir, { recursive: true });
     configPath = join(tmpDir, "config");
 
@@ -132,6 +132,22 @@ describe("loadConfig", () => {
 
     const cfg = await loadConfig({ configPath });
     expect(cfg.projectsRoot).toBe("/vol/projects");
+  });
+
+  it("keeps reading existing scvn settings after the gdf rebrand", async () => {
+    const oldHome = process.env["HOME"];
+    process.env["HOME"] = tmpDir;
+    try {
+      await mkdir(join(tmpDir, ".scvn"));
+      await mkdir(join(tmpDir, ".gdf"));
+      await writeFile(join(tmpDir, ".scvn", "config"), "SCVN_PROJECTS_ROOT=/existing/projects\n");
+      await writeFile(join(tmpDir, ".gdf", "config"), "SCVN_PROJECTS_ROOT=/wrong/new/profile\n");
+
+      expect((await loadConfig()).projectsRoot).toBe("/existing/projects");
+    } finally {
+      if (oldHome === undefined) delete process.env["HOME"];
+      else process.env["HOME"] = oldHome;
+    }
   });
 
   it("ignores the removed SCVN_FORK_LAST_UNITY key (self-cleaning migration)", async () => {

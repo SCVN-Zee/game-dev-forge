@@ -37,7 +37,7 @@ describe("cli.tsx — v0.3 direct-op dispatch", () => {
   it("declares SETUP_OPS with exactly the 1 remaining bootstrap op", async () => {
     // SETUP_OPS is single-sourced in the first-run guard (also used by the guard
     // predicate); cli.tsx imports and uses it for dispatch. gitignore/gitexclude
-    // were grouped into `scvn git` in v0.5 — no longer op-set members.
+    // were grouped into `gdf git` in v0.5 — no longer op-set members.
     const guard = await readGuard();
     expect(guard).toMatch(/SETUP_OPS\s*:\s*Record<string,\s*true>/);
     for (const key of ["ignore-dirty"]) {
@@ -88,10 +88,10 @@ describe("cli.tsx — v0.3 direct-op dispatch", () => {
 
 describe("setup-migration-hint — old → new command table", () => {
   it("maps every old setup subcommand to its direct command", () => {
-    expect(SETUP_MIGRATION_HINT).toContain("scvn ignore-dirty");
-    expect(SETUP_MIGRATION_HINT).toContain("scvn git --ignore");   // gitignore grouped into `scvn git`
-    expect(SETUP_MIGRATION_HINT).toContain("scvn git --exclude");  // gitexclude grouped into `scvn git`
-    expect(SETUP_MIGRATION_HINT).toContain("scvn fork");
+    expect(SETUP_MIGRATION_HINT).toContain("gdf ignore-dirty");
+    expect(SETUP_MIGRATION_HINT).toContain("gdf git --ignore");   // gitignore grouped into `gdf git`
+    expect(SETUP_MIGRATION_HINT).toContain("gdf git --exclude");  // gitexclude grouped into `gdf git`
+    expect(SETUP_MIGRATION_HINT).toContain("gdf fork");
   });
 
   it("marks the run-all op as removed", () => {
@@ -101,18 +101,18 @@ describe("setup-migration-hint — old → new command table", () => {
 
 describe("git-migration-hint — v0.4 → v0.5 grouping table", () => {
   it("maps gitignore/gitexclude to the new git flags", () => {
-    expect(GIT_GROUPING_HINT).toContain("scvn gitignore");
-    expect(GIT_GROUPING_HINT).toContain("scvn git --ignore");
-    expect(GIT_GROUPING_HINT).toContain("scvn gitexclude");
-    expect(GIT_GROUPING_HINT).toContain("scvn git --exclude");
+    expect(GIT_GROUPING_HINT).toContain("gdf gitignore");
+    expect(GIT_GROUPING_HINT).toContain("gdf git --ignore");
+    expect(GIT_GROUPING_HINT).toContain("gdf gitexclude");
+    expect(GIT_GROUPING_HINT).toContain("gdf git --exclude");
   });
 });
 
 describe("commands/fork.ts — direct-command strings", () => {
-  it("has the macOS guard naming the direct command (scvn fork)", async () => {
+  it("has the macOS guard naming the direct command (gdf fork)", async () => {
     const fork = await readFork();
     expect(fork).toMatch(/process\.platform\s*!==\s*["']darwin["']/);
-    expect(fork).toMatch(/scvn fork.*macOS only/);
-    expect(fork).not.toContain("scvn setup fork");
+    expect(fork).toMatch(/gdf fork.*macOS only/);
+    expect(fork).not.toContain("gdf setup fork");
   });
 });

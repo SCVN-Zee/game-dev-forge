@@ -1,7 +1,7 @@
 /**
  * test/lib/markers.test.ts
  *
- * Ported from fork-unity-setup. Import paths updated to scvn src/.
+ * Ported from fork-unity-setup. Import paths updated to gdf src/.
  */
 
 import { describe, expect, it } from "vitest";

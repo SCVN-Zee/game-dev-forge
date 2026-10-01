@@ -49,7 +49,7 @@ describe("importPackages", () => {
     rsyncMocks.rsyncCopyStream.mockImplementation(async function* () { /* no events */ });
     rsyncMocks.rsyncCopy.mockResolvedValue(undefined);
 
-    root     = join(tmpdir(), `scvn-import-pkgs-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    root     = join(tmpdir(), `gdf-import-pkgs-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     storeDir = join(root, "store");
     target   = join(root, "game"); // the target project ROOT
     // Staged slot mirrors both packages at their root-relative identity

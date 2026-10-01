@@ -3,7 +3,7 @@
  *
  * Pins the reject table of isSafeRelPath. This predicate is the last guard in
  * front of copyPackage's rm(recursive) — its inputs come from meta.json (written
- * by a possibly-older scvn) and from a hand-edited catalog file.
+ * by a possibly-older gdf) and from a hand-edited catalog file.
  *
  * Two rows encode deliberately conservative behavior:
  *   "..hidden" → true   (only a WHOLE ".." segment is a traversal)

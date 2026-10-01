@@ -73,7 +73,7 @@ describe("findNearestProjectRoot (marker walk-up)", () => {
   let project: string;
 
   beforeEach(async () => {
-    root = join(tmpdir(), `scvn-resolve-add-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    root = join(tmpdir(), `gdf-resolve-add-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     project = join(root, "hub");
     await mkdir(join(project, "Assets", "Plugins", "Sirenix"), { recursive: true });
     await mkdir(join(project, "Packages", "com.acme.core"), { recursive: true });
@@ -123,7 +123,7 @@ describe("resolveAddFolder (walk-up + core)", () => {
   let project: string;
 
   beforeEach(async () => {
-    root = join(tmpdir(), `scvn-resolve-full-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    root = join(tmpdir(), `gdf-resolve-full-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     project = join(root, "hub");
     await mkdir(join(project, "ProjectSettings"), { recursive: true });
     await writeFile(join(project, "ProjectSettings", "ProjectVersion.txt"), "m_EditorVersion: 6000.0.1f1", "utf8");

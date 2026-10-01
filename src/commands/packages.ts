@@ -1,5 +1,5 @@
 /**
- * commands/packages.ts — Linear clack flow for `scvn packages add|remove|import`.
+ * commands/packages.ts — Linear clack flow for `gdf packages add|remove|import`.
  *
  * The store is a LIBRARY of staged packages:
  *   add:    pick a folder inside a Unity project (Assets/, Packages/, or a
@@ -160,7 +160,7 @@ async function runRemove(args: PackagesArgs, prompt: PromptAdapter, output: Outp
   const effective = await resolveEffectiveStoreDir("packages", { override: args.store });
   const meta = await readPackagesStoreMeta(effective?.storeDir);
   if (!meta || meta.packages.length === 0) {
-    output.log.error("Nothing staged — run `scvn packages add` first");
+    output.log.error("Nothing staged — run `gdf packages add` first");
     process.exitCode = 1;
     output.outro("packages remove: nothing staged");
     return;
@@ -219,7 +219,7 @@ async function runImport(args: PackagesArgs, prompt: PromptAdapter, output: Outp
   const effective = await resolveEffectiveStoreDir("packages", { override: args.store });
   const meta = await readPackagesStoreMeta(effective?.storeDir);
   if (!meta || meta.packages.length === 0) {
-    output.log.error("Nothing staged — run `scvn packages add` first");
+    output.log.error("Nothing staged — run `gdf packages add` first");
     process.exitCode = 1;
     output.outro("packages import: nothing staged");
     return;
@@ -312,7 +312,7 @@ export async function runPackages(
   prompt: PromptAdapter = realPrompt,
   output: OutputAdapter = realOutput,
 ): Promise<void> {
-  output.intro("scvn packages");
+  output.intro("gdf packages");
   const verb = await resolveVerb(args, prompt);
   if      (verb === "add")    await runAdd(args, prompt, output);
   else if (verb === "remove") await runRemove(args, prompt, output);

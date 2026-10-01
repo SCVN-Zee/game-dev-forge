@@ -5,7 +5,7 @@
  * Inserts --nomappinginoneline for Unity 6+ (changed CLI interface).
  *
  * Ported from fork-unity-setup/src/writers/write-gitconfig.ts.
- * Import path updated to scvn lib/unity-version.
+ * Import path updated to gdf lib/unity-version.
  */
 
 import { execa } from "execa";

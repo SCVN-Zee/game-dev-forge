@@ -8,7 +8,7 @@
  * Both delegate to the src feature module (readSubmoduleIgnoreState /
  * setSubmoduleIgnore) so the GUI reuses the exact git read/write path — the
  * toggle controls ONLY the local `.git/config` override, byte-identical to
- * `scvn ignore-dirty`, never the tracked `.gitmodules`.
+ * `gdf ignore-dirty`, never the tracked `.gitmodules`.
  */
 
 import {

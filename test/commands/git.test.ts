@@ -2,7 +2,7 @@
  * test/commands/git.test.ts — Flow-level tests for commands/git.ts (runGitCommand).
  *
  * Locked contract:
- *   - bare `scvn git` (no op flag) → prints the usage hint, exitCode 1, runs nothing
+ *   - bare `gdf git` (no op flag) → prints the usage hint, exitCode 1, runs nothing
  *   - flags select ops; multiple flags run in order ignore → exclude → lfs
  *   - a failing op (e.g. --lfs) sets exit 1 but ops selected before it still run
  *   - --yes without a target fails loudly naming --target (never auto-picks)

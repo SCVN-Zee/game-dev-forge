@@ -3,7 +3,7 @@
  *
  * Single source of truth shared by the renderer (which renders a launch form
  * per capability) and the host command registry (which validates the collected
- * values and calls the matching scvn handler). Keeping this declarative lets the
+ * values and calls the matching gdf handler). Keeping this declarative lets the
  * renderer stay generic: it draws whatever `launch` fields a capability lists.
  *
  * Phase 3 model: the launch form gathers only the non-interactive flags a
@@ -57,7 +57,7 @@ export type LaunchField =
       visibleWhen?: FieldCondition;
     };
 
-/** Declarative description of one scvn capability. */
+/** Declarative description of one gdf capability. */
 export interface CapabilitySpec {
   /** Registry key + invoke command. */
   id: string;
@@ -303,7 +303,7 @@ export const ALL_CAPABILITIES: CapabilitySpec[] = [
   {
     id: "settings",
     label: "Settings",
-    description: "scvn configuration and environment checks.",
+    description: "Game Dev Forge configuration and environment checks.",
     page: "settings",
     launch: [],
   },

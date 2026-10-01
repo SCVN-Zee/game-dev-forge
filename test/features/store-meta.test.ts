@@ -73,7 +73,7 @@ describe("store-meta", () => {
   let storeDir: string;
 
   beforeEach(async () => {
-    storeDir = join(tmpdir(), `scvn-store-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    storeDir = join(tmpdir(), `gdf-store-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     await mkdir(storeDir, { recursive: true });
   });
 

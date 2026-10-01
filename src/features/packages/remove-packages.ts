@@ -7,7 +7,7 @@
  * a warning (never a throw). Nothing else in the library is touched.
  *
  * relPaths come from meta.json — on-disk state possibly written by an older
- * scvn — so each is re-checked with isSafeRelPath before any recursive delete,
+ * gdf — so each is re-checked with isSafeRelPath before any recursive delete,
  * exactly like importPackages does.
  */
 

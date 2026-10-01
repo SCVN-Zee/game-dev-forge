@@ -10,7 +10,7 @@
  *  - a live per-submodule `ignore=dirty` toggle list. Selecting a project
  *    auto-loads every submodule in its repo (`ignore-dirty:list`); flipping a
  *    toggle applies immediately (`ignore-dirty:set`) — the write lands in the
- *    repo's local `.git/config` only, byte-identical to `scvn ignore-dirty`,
+ *    repo's local `.git/config` only, byte-identical to `gdf ignore-dirty`,
  *    never the tracked `.gitmodules`.
  *
  * When a submodule already declares `ignore = dirty` (or `all`) in

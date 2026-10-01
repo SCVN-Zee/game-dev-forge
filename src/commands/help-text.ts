@@ -1,12 +1,12 @@
 /**
- * commands/help-text.ts — The `scvn -h` / bare-invocation help surface.
+ * commands/help-text.ts — The `gdf -h` / bare-invocation help surface.
  */
 
 export const HELP_TEXT = `
-scvn — Unified Unity tooling CLI
+gdf — Game Dev Forge: Unity project workflow tools
 
 Usage:
-  scvn <command> [verb] [flags]
+  gdf <command> [verb] [flags]
 
 Commands:
   packages         Unity editor packages — a staged library: add / remove / import
@@ -23,7 +23,7 @@ packages verbs (bare noun opens a menu):
   import           Apply selected staged packages to a target project
                    (export is a back-compat alias for add)
 
-git ops (scvn git — pick ≥1 flag; combine freely):
+git ops (gdf git — pick ≥1 flag; combine freely):
   --ignore         Install repo-root .gitignore + prune nested
   --exclude        Write the bundled template into .git/info/exclude as a fenced block
   --lfs            git lfs install --local + LFS .gitattributes block
@@ -34,8 +34,8 @@ Flags:
   --from <path>    Add source project (Assets dir)
   --to <path>      Import target project (Assets dir, repeatable)
   --target <path>  Bootstrap-op / git / init target Assets dir
-  --name <name>    scvn init default hierarchy project name (without --layout)
-  --layout <file>  scvn init full Assets-relative JSON hierarchy
+  --name <name>    gdf init default hierarchy project name (without --layout)
+  --layout <file>  gdf init full Assets-relative JSON hierarchy
   --store <path>   Snapshot-store dir override (export/import/doctor; or SCVN_STORE_DIR)
   -h, --help       Show this help
   --version        Print version

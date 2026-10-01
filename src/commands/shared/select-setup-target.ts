@@ -1,6 +1,6 @@
 /**
  * commands/shared/select-setup-target.ts — Interactive target-project picker
- * shared by the bootstrap-op flows (`scvn <op>` in setup.ts and `scvn git`).
+ * shared by the bootstrap-op flows (`gdf <op>` in setup.ts and `gdf git`).
  *
  * Only reached when no --target flag / SCVN_TARGET env preset exists. Resolves
  * the projects root, discovers Unity projects, and offers a single-select — or

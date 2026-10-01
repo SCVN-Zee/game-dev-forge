@@ -1,10 +1,10 @@
 /**
- * commands/fork.ts — Linear clack flow for `scvn fork`.
+ * commands/fork.ts — Linear clack flow for `gdf fork`.
  *
  * Configures Fork.app (the git GUI) for Unity smart-merge. It touches ONLY
  * Fork.app's own prefs via `defaults write` — it does NOT write git config or
  * any per-project `.gitattributes`. Project git artifacts are the job of
- * `scvn git`; fork is machine-level Fork.app setup only.
+ * `gdf git`; fork is machine-level Fork.app setup only.
  *
  * Flow:
  *   1. macOS guard (non-darwin → log error + non-zero exit)
@@ -44,11 +44,11 @@ export interface ForkArgs {
 
 /** macOS-only message — Fork.app and `defaults write` are macOS-specific. */
 export const FORK_MACOS_ONLY_MESSAGE =
-  "scvn fork: macOS only (requires Fork.app and defaults command)";
+  "gdf fork: macOS only (requires Fork.app and defaults command)";
 
 /** Warned pre-apply when Fork.app is running; the quit ask happens at apply. */
 export const FORK_RUNNING_WARNING =
-  "Fork is running — scvn will ask to quit it, then reopen it after applying.";
+  "Fork is running — gdf will ask to quit it, then reopen it after applying.";
 
 /**
  * Result of the fork preflight: whether prerequisites are met, the first
@@ -253,7 +253,7 @@ export async function runFork(
   const dryRun  = args.dryRun  ?? false;
   const autoYes = args.autoYes ?? false;
 
-  output.intro("scvn fork");
+  output.intro("gdf fork");
 
   // Step 1: precheck — detect blockers in parallel
   const precheckSpinner = prompt.spinner();

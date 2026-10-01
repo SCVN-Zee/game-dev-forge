@@ -10,8 +10,8 @@ import { stageNodeRuntime } from "../../src/features/pack/node-runtime-staging.j
 
 describe("stageNodeRuntime", () => {
   it("copies the node binary to <staging>/node/bin/node, executable", async () => {
-    const src = await tmpDir("scvn-node-src-");
-    const staging = await tmpDir("scvn-node-stage-");
+    const src = await tmpDir("gdf-node-src-");
+    const staging = await tmpDir("gdf-node-stage-");
     const srcBin = path.join(src, "node");
     await writeFile(srcBin, "#!/bin/sh\necho NODE\n");
     await chmod(srcBin, 0o755);

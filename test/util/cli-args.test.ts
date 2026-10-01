@@ -1,5 +1,5 @@
 /**
- * test/util/cli-args.test.ts — Unit tests for the scvn argv parser.
+ * test/util/cli-args.test.ts — Unit tests for the gdf argv parser.
  *
  * Covers namespace extraction, subcommand parsing, flags, and edge cases.
  */

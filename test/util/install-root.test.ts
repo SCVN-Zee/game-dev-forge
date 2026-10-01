@@ -13,7 +13,7 @@ import { findInstallRoot } from "../../src/util/install-root.js";
 
 describe("findInstallRoot", () => {
   it("walks up to the nearest ancestor holding templates/", async () => {
-    const root = await tmpDir("scvn-install-root-");
+    const root = await tmpDir("gdf-install-root-");
     await mkdir(path.join(root, "templates"), { recursive: true });
     const start = path.join(root, "dist", "util");
     await mkdir(start, { recursive: true });
@@ -22,14 +22,14 @@ describe("findInstallRoot", () => {
   });
 
   it("matches templates/ at the start dir itself", async () => {
-    const root = await tmpDir("scvn-install-root-");
+    const root = await tmpDir("gdf-install-root-");
     await mkdir(path.join(root, "templates"), { recursive: true });
 
     expect(await findInstallRoot(root)).toBe(root);
   });
 
   it("returns null when no ancestor has templates/", async () => {
-    const root = await tmpDir("scvn-install-root-");
+    const root = await tmpDir("gdf-install-root-");
     const start = path.join(root, "a", "b");
     await mkdir(start, { recursive: true });
 

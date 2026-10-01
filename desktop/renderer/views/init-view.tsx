@@ -117,7 +117,7 @@ export function InitView({ onDirtyChange }: { onDirtyChange: (dirty: boolean) =>
   };
 
   const saveLayout = async (): Promise<void> => {
-    const selected = layoutPath ?? await pickSaveFile({ title: "Save layout manifest", defaultPath: "scvn-layout.json" });
+    const selected = layoutPath ?? await pickSaveFile({ title: "Save layout manifest", defaultPath: "gdf-layout.json" });
     if (!selected) return;
     try {
       await invokeForResult("init:save-layout", { path: selected, layout });

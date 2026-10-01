@@ -36,7 +36,7 @@ function count(text: string, needle: string): number {
 
 describe("applyExcludeBlock", () => {
   it("creates a fenced file (and its parent dirs) when none exists", async () => {
-    const dir = await tmpDir("scvn-excl-");
+    const dir = await tmpDir("gdf-excl-");
     const file = path.join(dir, "info", "exclude");
 
     const result = await applyExcludeBlock(file, INNER, SCVN_FENCE);
@@ -48,7 +48,7 @@ describe("applyExcludeBlock", () => {
   });
 
   it("appends after hand-written lines that lack a trailing newline, un-fused", async () => {
-    const dir = await tmpDir("scvn-excl-");
+    const dir = await tmpDir("gdf-excl-");
     const file = await seed(dir, "# user line\nbuild/"); // no trailing \n
 
     await applyExcludeBlock(file, INNER, SCVN_FENCE);
@@ -60,7 +60,7 @@ describe("applyExcludeBlock", () => {
   });
 
   it("is idempotent — a second apply leaves exactly one fence", async () => {
-    const dir = await tmpDir("scvn-excl-");
+    const dir = await tmpDir("gdf-excl-");
     const file = await seed(dir, "# user line\n");
 
     await applyExcludeBlock(file, INNER, SCVN_FENCE);
@@ -73,7 +73,7 @@ describe("applyExcludeBlock", () => {
   });
 
   it("refreshes the fence body in place without moving foreign lines", async () => {
-    const dir = await tmpDir("scvn-excl-");
+    const dir = await tmpDir("gdf-excl-");
     const file = await seed(dir, "keep-me\n");
 
     await applyExcludeBlock(file, "OLD", SCVN_FENCE);
@@ -86,7 +86,7 @@ describe("applyExcludeBlock", () => {
   });
 
   it("leaves a foreign fence byte-identical", async () => {
-    const dir = await tmpDir("scvn-excl-");
+    const dir = await tmpDir("gdf-excl-");
     const file = await seed(dir, FOREIGN_BLOCK);
 
     await applyExcludeBlock(file, INNER, SCVN_FENCE);
@@ -98,7 +98,7 @@ describe("applyExcludeBlock", () => {
   });
 
   it("baseText:'' discards the current file — the migration path", async () => {
-    const dir = await tmpDir("scvn-excl-");
+    const dir = await tmpDir("gdf-excl-");
     const file = await seed(dir, "legacy-template-line\n");
 
     const result = await applyExcludeBlock(file, INNER, SCVN_FENCE, { baseText: "" });
@@ -110,7 +110,7 @@ describe("applyExcludeBlock", () => {
   });
 
   it("writes each fence independently into one file", async () => {
-    const dir = await tmpDir("scvn-excl-");
+    const dir = await tmpDir("gdf-excl-");
     const file = path.join(dir, "exclude");
 
     await applyExcludeBlock(file, INNER, SCVN_FENCE);
@@ -122,14 +122,14 @@ describe("applyExcludeBlock", () => {
   });
 
   it("throws on an orphan fence rather than silently swallowing content", async () => {
-    const dir = await tmpDir("scvn-excl-");
+    const dir = await tmpDir("gdf-excl-");
     const file = await seed(dir, "# >>> scvn >>>\ncrash residue\n");
 
     await expect(applyExcludeBlock(file, INNER, SCVN_FENCE)).rejects.toThrow(/Unbalanced/);
   });
 
   it("leaves no temp file behind", async () => {
-    const dir = await tmpDir("scvn-excl-");
+    const dir = await tmpDir("gdf-excl-");
     const file = path.join(dir, "exclude");
 
     await applyExcludeBlock(file, INNER, SCVN_FENCE);

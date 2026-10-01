@@ -1,19 +1,19 @@
 /**
- * commands/git.ts — Linear clack flow for `scvn git` — the flag-selected group
+ * commands/git.ts — Linear clack flow for `gdf git` — the flag-selected group
  * of git-artifact bootstrap ops:
  *
- *   scvn git --ignore    install repo-root .gitignore + prune nested
- *   scvn git --exclude   install .git/info/exclude
- *   scvn git --lfs       git lfs install --local + LFS .gitattributes block
+ *   gdf git --ignore    install repo-root .gitignore + prune nested
+ *   gdf git --exclude   install .git/info/exclude
+ *   gdf git --lfs       git lfs install --local + LFS .gitattributes block
  *
- * Flags compose: `scvn git --ignore --exclude --lfs` runs all three under one
+ * Flags compose: `gdf git --ignore --exclude --lfs` runs all three under one
  * target resolution and one flow, in the fixed order ignore → exclude → lfs.
- * Bare `scvn git` (no op flag) prints the usage hint and exits 1 — no menu, no
+ * Bare `gdf git` (no op flag) prints the usage hint and exits 1 — no menu, no
  * run-all. Each op is an independent step; a failing op (e.g. --lfs with git-lfs
  * absent) sets exit 1 but does not abort the ops selected before it.
  *
  * Reuses the shared step-runner + target picker + setup handler map, so the
- * per-op behavior is identical to the standalone `scvn <op>` flows.
+ * per-op behavior is identical to the standalone `gdf <op>` flows.
  */
 
 import process from "node:process";
@@ -57,14 +57,14 @@ const OP_LABELS: Record<GitOp, string> = {
 /** Fixed run order when multiple flags are passed. */
 const OP_ORDER: GitOp[] = ["ignore", "exclude", "lfs"];
 
-export const GIT_USAGE_HINT = `scvn git needs at least one op flag:
-  scvn git --ignore    install repo-root .gitignore + prune nested
-  scvn git --exclude   install .git/info/exclude
-  scvn git --lfs       git lfs install --local + LFS .gitattributes block
-Combine them: scvn git --ignore --exclude --lfs [--target <Assets dir>] [-n] [-y]`;
+export const GIT_USAGE_HINT = `gdf git needs at least one op flag:
+  gdf git --ignore    install repo-root .gitignore + prune nested
+  gdf git --exclude   install .git/info/exclude
+  gdf git --lfs       git lfs install --local + LFS .gitattributes block
+Combine them: gdf git --ignore --exclude --lfs [--target <Assets dir>] [-n] [-y]`;
 
 /**
- * Run the `scvn git` flow. Accepts an optional `prompt` override for testing.
+ * Run the `gdf git` flow. Accepts an optional `prompt` override for testing.
  */
 export async function runGitCommand(
   args: GitCommandArgs,
@@ -77,14 +77,14 @@ export async function runGitCommand(
   const ops = OP_ORDER.filter((op) => args[op]);
 
   // No op selected — print the flag hint and fail loudly. No target resolution,
-  // no writes, no menu (bare `scvn git` is a usage nudge, not a run-all).
+  // no writes, no menu (bare `gdf git` is a usage nudge, not a run-all).
   if (ops.length === 0) {
     console.error(GIT_USAGE_HINT);
     process.exitCode = 1;
     return;
   }
 
-  output.intro("scvn git");
+  output.intro("gdf git");
 
   // Target resolution: --target flag → SCVN_TARGET env → interactive picker.
   // Never auto-pick under --yes (parity with the import --to safety rule).

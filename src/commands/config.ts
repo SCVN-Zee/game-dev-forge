@@ -1,5 +1,5 @@
 /**
- * commands/config.ts — Interactive flow for `scvn config`.
+ * commands/config.ts — Interactive flow for `gdf config`.
  *
  * Prompts for each setting and writes ~/.scvn/config via saveConfig. The config
  * model currently holds a single user-facing field: the Unity projects root
@@ -64,7 +64,7 @@ export interface ConfigExecuteResult {
 
 /**
  * Validate + persist the Unity projects root. The destructive half of
- * `scvn config`, shared by the CLI loop and the desktop native form (which
+ * `gdf config`, shared by the CLI loop and the desktop native form (which
  * gathers the path via a folder picker). Trims + home-expands, checks the dir
  * exists, writes, and logs success/outro. Never prompts.
  */
@@ -122,7 +122,7 @@ export async function runConfig(deps: RunConfigDeps = {}): Promise<void> {
         return;
       }
     }
-    output.intro("scvn config");
+    output.intro("gdf config");
     output.log.info(`Config path: ${configPath}`);
     output.log.step("Run in an interactive terminal to edit, or edit the file manually:");
     output.outro(configPath);
@@ -132,7 +132,7 @@ export async function runConfig(deps: RunConfigDeps = {}): Promise<void> {
   // Interactive: prompt each setting (prefilled with current), validate, save.
   const current = await loadConfig({ configPath });
 
-  output.intro("scvn config");
+  output.intro("gdf config");
 
   // Loop the dir-exists check in application code — clack's validate is
   // synchronous and cannot await stat (mirrors the fork.ts scan-root prompt).

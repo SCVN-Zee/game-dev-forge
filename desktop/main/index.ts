@@ -37,6 +37,10 @@ const RENDERER_HTML = path.join(__dirname, "renderer", "index.html");
 const DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 const SELFTEST = Boolean(process.env["SCVN_DESKTOP_SELFTEST"]);
 
+// Packaged builds historically used scvn; dev launches keep Electron's existing profile.
+app.setPath("userData", app.isPackaged ? path.join(app.getPath("appData"), "scvn") : app.getPath("userData"));
+app.setName("Game Dev Forge");
+
 const MAX_HOST_RESPAWNS = 5;
 
 let mainWindow: BrowserWindow | null = null;
@@ -196,7 +200,7 @@ function createWindow(): void {
     ...(state.x !== undefined && state.y !== undefined ? { x: state.x, y: state.y } : {}),
     minWidth: MIN_WINDOW_WIDTH,
     minHeight: MIN_WINDOW_HEIGHT,
-    title: "Supercent VN Tools",
+    title: "Game Dev Forge",
     backgroundColor: "#121218",
     titleBarStyle: "hiddenInset",
     trafficLightPosition: { x: 18, y: 18 },
@@ -293,7 +297,7 @@ app.whenReady().then(() => {
   // Safety net: if the self-test never reports, fail rather than hang forever.
   if (SELFTEST) {
     setTimeout(() => {
-      process.stderr.write("scvn selftest: timed out with no report\n");
+      process.stderr.write("gdf selftest: timed out with no report\n");
       app.exit(1);
     }, 20_000);
   }

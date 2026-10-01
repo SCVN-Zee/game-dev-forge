@@ -20,7 +20,7 @@ async function existsAt(value: string): Promise<boolean> {
 }
 
 async function makeUnityProject(): Promise<{ project: string; assets: string }> {
-  const project = await tmpDir("scvn-init-");
+  const project = await tmpDir("gdf-init-");
   const assets = path.join(project, "Assets");
   await mkdir(path.join(project, "ProjectSettings"));
   await mkdir(assets);

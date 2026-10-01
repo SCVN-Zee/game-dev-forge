@@ -24,7 +24,7 @@ import {
 async function initRepo(dir: string): Promise<void> {
   await execa("git", ["init", "-q"], { cwd: dir });
   await execa("git", ["config", "user.email", "test@example.com"], { cwd: dir });
-  await execa("git", ["config", "user.name", "scvn-test"], { cwd: dir });
+  await execa("git", ["config", "user.name", "gdf-test"], { cwd: dir });
 }
 
 async function writeAt(dir: string, rel: string, content = "x\n"): Promise<void> {
@@ -35,7 +35,7 @@ async function writeAt(dir: string, rel: string, content = "x\n"): Promise<void>
 
 describe("listNestedGitignores", () => {
   it("returns nested tracked + untracked, excludes root, skips ignored dirs and embedded repos", async () => {
-    const dir = await tmpDir("scvn-git-");
+    const dir = await tmpDir("gdf-git-");
     await initRepo(dir);
 
     // repo-root .gitignore (tracked) — MUST be excluded from results
@@ -60,7 +60,7 @@ describe("listNestedGitignores", () => {
   });
 
   it("returns [] for a non-git directory", async () => {
-    const dir = await tmpDir("scvn-nogit-");
+    const dir = await tmpDir("gdf-nogit-");
     expect(await listNestedGitignores(dir)).toEqual([]);
   });
 });
@@ -69,7 +69,7 @@ describe("getGitInfoExcludePath", () => {
   const GIT_DIR = ".git";
 
   it("returns the absolute exclude path from the repo root", async () => {
-    const dir = await tmpDir("scvn-excl-repo-");
+    const dir = await tmpDir("gdf-excl-repo-");
     await initRepo(dir);
 
     const result = await getGitInfoExcludePath(dir);
@@ -78,7 +78,7 @@ describe("getGitInfoExcludePath", () => {
   });
 
   it("resolves the same absolute path from a nested subdirectory", async () => {
-    const dir = await tmpDir("scvn-excl-sub-");
+    const dir = await tmpDir("gdf-excl-sub-");
     await initRepo(dir);
     await mkdir(path.join(dir, "Assets"), { recursive: true });
 
@@ -91,7 +91,7 @@ describe("getGitInfoExcludePath", () => {
     // A submodule's `.git` is a FILE. Joining `<toplevel>/.git/info/exclude`
     // would try to write beneath it (ENOTDIR); the real exclude lives under the
     // superproject's modules/ directory.
-    const dir = await tmpDir("scvn-excl-submod-");
+    const dir = await tmpDir("gdf-excl-submod-");
     const upstream = path.join(dir, "upstream");
     const superRepo = path.join(dir, "super");
     await mkdir(upstream, { recursive: true });
@@ -113,14 +113,14 @@ describe("getGitInfoExcludePath", () => {
   });
 
   it("returns null for a non-git directory", async () => {
-    const dir = await tmpDir("scvn-excl-nogit-");
+    const dir = await tmpDir("gdf-excl-nogit-");
     expect(await getGitInfoExcludePath(dir)).toBeNull();
   });
 });
 
 describe("listTrackedIgnoredFiles + gitRmCached", () => {
   it("lists tracked-but-now-ignored files (NUL-safe) and rm --cached drops them from the index, keeping the worktree", async () => {
-    const repo = await tmpDir("scvn-untrack-");
+    const repo = await tmpDir("gdf-untrack-");
     await initRepo(repo);
     await writeAt(repo, "Assets/keep.cs", "code\n");
     await writeAt(repo, "Assets/debug.log", "log\n");
@@ -148,7 +148,7 @@ describe("listTrackedIgnoredFiles + gitRmCached", () => {
   });
 
   it("returns [] for a non-git directory; gitRmCached no-ops on an empty list", async () => {
-    const dir = await tmpDir("scvn-untrack-nogit-");
+    const dir = await tmpDir("gdf-untrack-nogit-");
     expect(await listTrackedIgnoredFiles(dir)).toEqual([]);
     await expect(gitRmCached(dir, [])).resolves.toBeUndefined();
   });
@@ -156,7 +156,7 @@ describe("listTrackedIgnoredFiles + gitRmCached", () => {
 
 describe("listSubmoduleGitmodulesIgnore", () => {
   it("maps submodule NAME -> .gitmodules ignore value, omitting submodules with no ignore line", async () => {
-    const repo = await tmpDir("scvn-gitmodules-ignore-");
+    const repo = await tmpDir("gdf-gitmodules-ignore-");
     await initRepo(repo);
     await writeFile(
       path.join(repo, ".gitmodules"),
@@ -181,11 +181,11 @@ describe("listSubmoduleGitmodulesIgnore", () => {
   });
 
   it("returns {} for a repo with no .gitmodules and for a non-git directory", async () => {
-    const repo = await tmpDir("scvn-gitmodules-none-");
+    const repo = await tmpDir("gdf-gitmodules-none-");
     await initRepo(repo);
     expect(await listSubmoduleGitmodulesIgnore(repo)).toEqual({});
 
-    const plain = await tmpDir("scvn-gitmodules-plain-");
+    const plain = await tmpDir("gdf-gitmodules-plain-");
     expect(await listSubmoduleGitmodulesIgnore(plain)).toEqual({});
   });
 });

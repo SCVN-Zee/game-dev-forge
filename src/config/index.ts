@@ -1,5 +1,5 @@
 /**
- * config/index.ts — Barrel export for the scvn config module.
+ * config/index.ts — Barrel export for the gdf config module.
  */
 
 export type { ScvnConfig } from "./types.js";

@@ -3,9 +3,9 @@
  *
  * Tests:
  *   - ~/.config/scvn → ~/.scvn copy (config, history)
- *   - Legacy sync-unity source → correct keys in scvn config
- *   - Idempotent: second run is a no-op (scvn config already exists)
- *   - Skipped entirely when scvn config already exists
+ *   - Legacy sync-unity source → correct keys in gdf config
+ *   - Idempotent: second run is a no-op (gdf config already exists)
+ *   - Skipped entirely when gdf config already exists
  *   - Empty legacy config → nothing written
  *   - Never throws on missing files or bad data
  */
@@ -25,27 +25,27 @@ interface TmpPaths {
   // New ~/.scvn/* destination paths
   configPath:       string;
   historyPath:      string;
-  // Previous scvn dir ~/.config/scvn (parent — files written by tests)
+  // Previous gdf dir ~/.config/scvn (parent — files written by tests)
   previousScvnDir:  string;
   // Legacy source
   legacyConfigPath: string;
 }
 
 async function makeTmpDirs(): Promise<{ root: string; paths: TmpPaths }> {
-  const root = join(tmpdir(), `scvn-migrate-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
-  const scvnDir       = join(root, "scvn");           // ~/.scvn
-  const prevScvnDir   = join(root, "config-scvn");    // ~/.config/scvn
+  const root = join(tmpdir(), `gdf-migrate-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const gdfDir       = join(root, "gdf");           // ~/.scvn
+  const prevScvnDir   = join(root, "config-gdf");    // ~/.config/scvn
   const legacyDir     = join(root, "sync-unity");     // ~/.config/sync-unity
 
-  await mkdir(scvnDir,     { recursive: true });
+  await mkdir(gdfDir,     { recursive: true });
   await mkdir(prevScvnDir, { recursive: true });
   await mkdir(legacyDir,   { recursive: true });
 
   return {
     root,
     paths: {
-      configPath:       join(scvnDir,   "config"),
-      historyPath:      join(scvnDir,   "history.jsonl"),
+      configPath:       join(gdfDir,   "config"),
+      historyPath:      join(gdfDir,   "history.jsonl"),
       previousScvnDir:  prevScvnDir,
       legacyConfigPath: join(legacyDir, "config"),
     },
@@ -90,7 +90,7 @@ describe("migrate", () => {
     expect(parsed["SCVN_SSH_HOST"]).toBeUndefined();
   });
 
-  it("is idempotent: second run does not overwrite existing scvn config", async () => {
+  it("is idempotent: second run does not overwrite existing gdf config", async () => {
     await writeFile(paths.legacyConfigPath,
       "SYNC_UNITY_PROJECTS_ROOT=/vol/projects\n", "utf8");
 
@@ -107,7 +107,7 @@ describe("migrate", () => {
     expect(afterSecond).toBe(afterFirst);
   });
 
-  it("skips entirely when scvn config already exists", async () => {
+  it("skips entirely when gdf config already exists", async () => {
     const existing = "SCVN_PROJECTS_ROOT=/already/set\n";
     await writeFile(paths.configPath, existing, "utf8");
 
@@ -123,7 +123,7 @@ describe("migrate", () => {
   it("writes nothing when the legacy source is absent", async () => {
     await migrate(paths);
 
-    // scvn config should NOT be created when nothing to migrate
+    // gdf config should NOT be created when nothing to migrate
     await expect(readFile(paths.configPath, "utf8")).rejects.toThrow();
   });
 
@@ -142,9 +142,9 @@ describe("migrate", () => {
 
   it("never throws even when paths are completely invalid", async () => {
     const badPaths = {
-      configPath:       "/nonexistent/deeply/nested/scvn/config",
-      historyPath:      "/nonexistent/scvn/history.jsonl",
-      previousScvnDir:  "/nonexistent/config-scvn",
+      configPath:       "/nonexistent/deeply/nested/gdf/config",
+      historyPath:      "/nonexistent/gdf/history.jsonl",
+      previousScvnDir:  "/nonexistent/config-gdf",
       legacyConfigPath: "/nonexistent/sync-unity/config",
     };
 
@@ -156,7 +156,7 @@ describe("migrate", () => {
   // ~/.config/scvn → ~/.scvn copy step
   // -------------------------------------------------------------------------
 
-  describe("previous scvn dir copy", () => {
+  describe("previous gdf dir copy", () => {
     it("copies config and history from ~/.config/scvn", async () => {
       const prevConfig  = "SCVN_PROJECTS_ROOT=/already/migrated\n";
       const prevHistory = `{"ts":"2024-01-01T00:00:00Z","kind":"sync","status":"ok"}\n`;
@@ -199,16 +199,16 @@ describe("migrate", () => {
     });
 
     it("prefers prev-dir copy over legacy sync-unity migration", async () => {
-      // Both sources present — prev scvn dir wins
+      // Both sources present — prev gdf dir wins
       await writeFile(join(paths.previousScvnDir, "config"),
-        "SCVN_PROJECTS_ROOT=/from/prev-scvn\n", "utf8");
+        "SCVN_PROJECTS_ROOT=/from/prev-gdf\n", "utf8");
       await writeFile(paths.legacyConfigPath,
         "SYNC_UNITY_PROJECTS_ROOT=/from/sync-unity\n", "utf8");
 
       await migrate(paths);
 
       const parsed = await readParsed(paths.configPath);
-      expect(parsed["SCVN_PROJECTS_ROOT"]).toBe("/from/prev-scvn");
+      expect(parsed["SCVN_PROJECTS_ROOT"]).toBe("/from/prev-gdf");
     });
   });
 });

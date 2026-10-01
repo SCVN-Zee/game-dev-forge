@@ -6,7 +6,7 @@
  * Backs up the plist before any write.
  *
  * Ported from fork-unity-setup/src/writers/write-fork-prefs.ts.
- * Import paths updated to scvn lib/fork-paths and lib/backup.
+ * Import paths updated to gdf lib/fork-paths and lib/backup.
  */
 
 import { execa } from "execa";

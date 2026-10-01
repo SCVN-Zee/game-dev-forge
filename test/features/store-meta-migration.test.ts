@@ -62,7 +62,7 @@ describe("store v1→v2 migration", () => {
   let storeDir: string;
 
   beforeEach(async () => {
-    root = join(tmpdir(), `scvn-store-v2-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    root = join(tmpdir(), `gdf-store-v2-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     storeDir = join(root, "store");
   });
 

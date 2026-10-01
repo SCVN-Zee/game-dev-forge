@@ -61,7 +61,7 @@ async function buildFixtureTarball(
   arch: DarwinArch,
   content = "#!/bin/sh\necho FAKE_NODE\n",
 ): Promise<{ bytes: Buffer; sha: string }> {
-  const work = await tmpDir("scvn-fixture-");
+  const work = await tmpDir("gdf-fixture-");
   const top = `node-v${V}-darwin-${arch}`;
   await mkdir(path.join(work, top, "bin"), { recursive: true });
   await writeFile(path.join(work, top, "bin", "node"), content);
@@ -88,7 +88,7 @@ function finalBinPath(cacheDir: string, arch: DarwinArch): string {
 
 describe("fetchNodeBinary", () => {
   it("happy path: downloads, verifies, extracts an executable bin/node", async () => {
-    const cacheDir = await tmpDir("scvn-cache-");
+    const cacheDir = await tmpDir("gdf-cache-");
     const { bytes, sha } = await buildFixtureTarball("arm64");
     const fetchImpl = fetchReturning(bytes);
 
@@ -103,7 +103,7 @@ describe("fetchNodeBinary", () => {
   });
 
   it("checksum mismatch → throws, no file left at the final path", async () => {
-    const cacheDir = await tmpDir("scvn-cache-");
+    const cacheDir = await tmpDir("gdf-cache-");
     const { bytes } = await buildFixtureTarball("arm64");
     const fetchImpl = fetchReturning(bytes);
 
@@ -114,7 +114,7 @@ describe("fetchNodeBinary", () => {
   });
 
   it("valid cache hit → no second fetch", async () => {
-    const cacheDir = await tmpDir("scvn-cache-");
+    const cacheDir = await tmpDir("gdf-cache-");
     const { bytes, sha } = await buildFixtureTarball("arm64");
     const fetchImpl = fetchReturning(bytes);
 
@@ -125,7 +125,7 @@ describe("fetchNodeBinary", () => {
   });
 
   it("corrupted cache hit → re-verify fails → refetch restores the binary", async () => {
-    const cacheDir = await tmpDir("scvn-cache-");
+    const cacheDir = await tmpDir("gdf-cache-");
     const { bytes, sha } = await buildFixtureTarball("arm64");
     const fetchImpl = fetchReturning(bytes);
 
@@ -139,7 +139,7 @@ describe("fetchNodeBinary", () => {
   });
 
   it("pre-seeded wrong-hash file at the final path is not a valid hit", async () => {
-    const cacheDir = await tmpDir("scvn-cache-");
+    const cacheDir = await tmpDir("gdf-cache-");
     const { bytes, sha } = await buildFixtureTarball("arm64");
     const final = finalBinPath(cacheDir, "arm64");
     await mkdir(path.dirname(final), { recursive: true });
@@ -153,7 +153,7 @@ describe("fetchNodeBinary", () => {
   });
 
   it("non-OK download → throws", async () => {
-    const cacheDir = await tmpDir("scvn-cache-");
+    const cacheDir = await tmpDir("gdf-cache-");
     const fetchImpl = fetchReturning(Buffer.from(""), false, 404);
     await expect(
       fetchNodeBinary({ version: V, arch: "arm64", cacheDir, expectedSha256: "a".repeat(64), fetchImpl }),
@@ -161,7 +161,7 @@ describe("fetchNodeBinary", () => {
   });
 
   it("unfilled pinned hash (no override) → hard-fails fail-safe, no fetch", async () => {
-    const cacheDir = await tmpDir("scvn-cache-");
+    const cacheDir = await tmpDir("gdf-cache-");
     const fetchImpl = fetchReturning(Buffer.from(""));
     await expect(
       fetchNodeBinary({ version: V, arch: "arm64", cacheDir, fetchImpl }),

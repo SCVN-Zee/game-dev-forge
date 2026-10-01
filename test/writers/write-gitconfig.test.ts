@@ -1,7 +1,7 @@
 /**
  * test/writers/write-gitconfig.test.ts
  *
- * Ported from fork-unity-setup. Import paths updated to scvn src/.
+ * Ported from fork-unity-setup. Import paths updated to gdf src/.
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";

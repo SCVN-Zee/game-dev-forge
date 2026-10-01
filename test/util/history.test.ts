@@ -24,7 +24,7 @@ vi.mock("../../src/config/paths.js", async (importOriginal) => {
 import { appendHistory, getLastProjectsByRole, getRecentProjects } from "../../src/util/history.js";
 
 beforeEach(async () => {
-  tmpDir      = await mkdtemp(path.join(tmpdir(), "scvn-history-"));
+  tmpDir      = await mkdtemp(path.join(tmpdir(), "gdf-history-"));
   historyPath = path.join(tmpDir, "history.jsonl");
 });
 

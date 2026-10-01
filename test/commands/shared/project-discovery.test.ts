@@ -1,7 +1,7 @@
 /**
  * test/commands/shared/project-discovery.test.ts — Unit tests for the
  * projectsToOptions picker chrome: `name (scene) · branch` labels, age hints,
- * and the optional version-mismatch hint used by `scvn fork`.
+ * and the optional version-mismatch hint used by `gdf fork`.
  *
  * Pure function — no mocks. mtimeMs is derived from Date.now() at fixture
  * build time; minute-resolution age rounding keeps assertions stable.

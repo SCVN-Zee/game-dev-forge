@@ -1,5 +1,5 @@
 /**
- * doctor/runner.ts — Parallel check executor for `scvn doctor`.
+ * doctor/runner.ts — Parallel check executor for `gdf doctor`.
  *
  * run() iterates CHECKS via Promise.allSettled (parallel) and aggregates results.
  * Exit code:

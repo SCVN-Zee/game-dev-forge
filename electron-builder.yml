@@ -1,4 +1,4 @@
-# electron-builder.yml — desktop packaging for the scvn GUI.
+# electron-builder.yml — desktop packaging for Game Dev Forge.
 #
 # Two build modes off one config:
 #   • Local unsigned (default `npm run desktop:pack`) — sets
@@ -11,10 +11,10 @@
 #     applies the entitlements below, and notarizes via notarytool.
 #
 # The CLI is untouched: Electron's entry is injected via extraMetadata.main, so
-# the repo package.json `main` stays unset and `bin/scvn` resolution is unchanged.
+# the repo package.json `main` stays unset and `bin/gdf` resolution is unchanged.
 
 appId: com.supercent.scvn
-productName: Supercent VN Tools
+productName: Game Dev Forge
 
 directories:
   output: dist-desktop-pack

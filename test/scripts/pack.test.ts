@@ -142,7 +142,7 @@ describe("runPackBundle()", () => {
         nodeBinPath:     fakeNodeBin,
       }),
     );
-    const archive = path.join(root, "pkg", "scvn-bundle-9.9.9.zip");
+    const archive = path.join(root, "pkg", "gdf-bundle-9.9.9.zip");
     expect(zipMock.createZip).toHaveBeenCalledWith(staging, archive);
     expect(staging).toBeDefined();
     await expect(access(staging!)).rejects.toThrow(); // temp staging removed

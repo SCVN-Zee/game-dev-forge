@@ -1,7 +1,7 @@
 /**
  * test/lib/path-expand.test.ts
  *
- * Ported from fork-unity-setup. Import paths updated to scvn src/.
+ * Ported from fork-unity-setup. Import paths updated to gdf src/.
  */
 
 import { homedir } from "node:os";

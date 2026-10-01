@@ -2,7 +2,7 @@
  * detectors/detect-beyond-compare.ts — Check whether Beyond Compare is installed.
  *
  * Ported from fork-unity-setup/src/detectors/detect-beyond-compare.ts.
- * Import path updated to scvn lib/fork-paths.
+ * Import path updated to gdf lib/fork-paths.
  */
 
 import fs from "fs/promises";

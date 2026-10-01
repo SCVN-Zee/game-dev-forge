@@ -149,7 +149,7 @@ describe("check: git", () => {
 });
 
 // ---------------------------------------------------------------------------
-// git-lfs check — warn (not fail) when missing: only `scvn git --lfs` needs it
+// git-lfs check — warn (not fail) when missing: only `gdf git --lfs` needs it
 // ---------------------------------------------------------------------------
 
 describe("check: git-lfs", () => {
@@ -184,7 +184,7 @@ describe("check: node", () => {
 
   it("pass for Node >= 20, labeled (system) when not the bundled binary", async () => {
     setVersion("v24.16.0");
-    const root = await tmpDir("scvn-ir-"); // no node/ → running node is not the bundled one
+    const root = await tmpDir("gdf-ir-"); // no node/ → running node is not the bundled one
     installRootMock.mockResolvedValue(root);
     const result = await getCheck("node").run();
     expect(result.severity).toBe("pass");
@@ -201,7 +201,7 @@ describe("check: node", () => {
 
   it("labeled (bundled) when the running execPath IS the bundled node", async () => {
     setVersion("v24.16.0");
-    const root = await tmpDir("scvn-ir-");
+    const root = await tmpDir("gdf-ir-");
     await mkdir(path.join(root, "node", "bin"), { recursive: true });
     await symlink(process.execPath, path.join(root, "node", "bin", "node")); // realpath === execPath
     installRootMock.mockResolvedValue(root);
@@ -391,7 +391,7 @@ describe("macOnly checks on darwin", () => {
     });
 
     async function bundleRootWithNode(): Promise<string> {
-      const root = await tmpDir("scvn-ir-");
+      const root = await tmpDir("gdf-ir-");
       await mkdir(path.join(root, "node", "bin"), { recursive: true });
       await writeFile(path.join(root, "node", "bin", "node"), "x");
       await chmod(path.join(root, "node", "bin", "node"), 0o755);
@@ -399,7 +399,7 @@ describe("macOnly checks on darwin", () => {
     }
 
     it("absent bundled node → skipped (a dev checkout)", async () => {
-      installRootMock.mockResolvedValue(await tmpDir("scvn-ir-")); // no node/ dir
+      installRootMock.mockResolvedValue(await tmpDir("gdf-ir-")); // no node/ dir
       const result = await getCheck("bundled-node").run();
       expect(result.severity).toBe("skipped");
     });

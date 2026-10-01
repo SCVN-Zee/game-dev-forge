@@ -8,7 +8,7 @@ import { tmpDir } from "../helpers/tmp-dir.js";
 
 describe("runInit", () => {
   it("creates the default hierarchy from explicit noninteractive args", async () => {
-    const root = await tmpDir("scvn-init-command-");
+    const root = await tmpDir("gdf-init-command-");
     const assets = path.join(root, "Assets");
     await mkdir(path.join(root, "ProjectSettings"));
     await mkdir(assets);
@@ -27,7 +27,7 @@ describe("runInit", () => {
   });
 
   it("rejects --name with a custom layout", async () => {
-    const root = await tmpDir("scvn-init-command-");
+    const root = await tmpDir("gdf-init-command-");
     const assets = path.join(root, "Assets");
     await mkdir(assets);
     const output = fakeOutput();

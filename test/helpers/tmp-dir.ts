@@ -2,7 +2,7 @@
  * test/helpers/tmp-dir.ts — Create and auto-cleanup temporary directories in tests.
  *
  * Ported from fork-unity-setup/test/helpers/tmp-dir.ts.
- * Prefix updated to scvn- for clarity in OS temp listings.
+ * Prefix updated to gdf- for clarity in OS temp listings.
  */
 
 import fs from "fs/promises";
@@ -12,7 +12,7 @@ import { afterEach } from "vitest";
 
 const created: string[] = [];
 
-export async function tmpDir(prefix = "scvn-"): Promise<string> {
+export async function tmpDir(prefix = "gdf-"): Promise<string> {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), prefix));
   created.push(dir);
   return dir;

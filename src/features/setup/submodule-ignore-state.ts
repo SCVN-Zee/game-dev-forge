@@ -6,7 +6,7 @@
  * This is the direct-manipulation sibling of toggle-submodule-ignore.ts (the
  * CLI's batch multi-select). Both share the same write model — the toggle
  * controls ONLY the local `.git/config` override (`set dirty` / `unset`), never
- * the tracked `.gitmodules`, so a GUI flip is byte-identical to `scvn
+ * the tracked `.gitmodules`, so a GUI flip is byte-identical to `gdf
  * ignore-dirty` and round-trips cleanly.
  *
  * `readSubmoduleIgnoreState` additionally surfaces each submodule's `.gitmodules`

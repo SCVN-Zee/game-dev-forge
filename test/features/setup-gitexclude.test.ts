@@ -30,7 +30,7 @@ function fakeReporter() {
 
 /** A git repo with a Unity-shaped `Assets/` dir; returns the target + exclude path. */
 async function makeRepo(): Promise<{ target: string; excludePath: string }> {
-  const dir = await tmpDir("scvn-gitexcl-");
+  const dir = await tmpDir("gdf-gitexcl-");
   await execa("git", ["init", "-q"], { cwd: dir });
   const target = path.join(dir, "Assets");
   await mkdir(target, { recursive: true });
@@ -63,7 +63,7 @@ function count(text: string, needle: string): number {
 
 describe("setupGitexclude", () => {
   it("skips cleanly when the target is not inside a git repo", async () => {
-    const dir = await tmpDir("scvn-gitexcl-nogit-");
+    const dir = await tmpDir("gdf-gitexcl-nogit-");
     const { reporter, last } = fakeReporter();
 
     await setupGitexclude(dir, { reporter });
@@ -120,7 +120,7 @@ describe("setupGitexclude", () => {
   });
 
   it("migrates the retired v0.5.1 pre-trim revision to the fenced current form", async () => {
-    // A pre-fence install carries a wholesale copy of whatever template its scvn
+    // A pre-fence install carries a wholesale copy of whatever template its gdf
     // shipped. The v0.5.1 body (before the lean-defaults trim) must still be
     // recognized by digest, or it falls to the additive path and strands the old
     // unfenced body forever.
@@ -175,7 +175,7 @@ describe("setupGitexclude", () => {
   });
 
   it("writes the exclude file of a submodule, not a path under its gitlink", async () => {
-    const dir = await tmpDir("scvn-gitexcl-submod-");
+    const dir = await tmpDir("gdf-gitexcl-submod-");
     const upstream = path.join(dir, "upstream");
     const superRepo = path.join(dir, "super");
     await mkdir(upstream, { recursive: true });
@@ -183,7 +183,7 @@ describe("setupGitexclude", () => {
     for (const repo of [upstream, superRepo]) {
       await execa("git", ["init", "-q"], { cwd: repo });
       await execa("git", ["config", "user.email", "test@example.com"], { cwd: repo });
-      await execa("git", ["config", "user.name", "scvn-test"], { cwd: repo });
+      await execa("git", ["config", "user.name", "gdf-test"], { cwd: repo });
     }
     await execa("git", ["commit", "-q", "--allow-empty", "-m", "init"], { cwd: upstream });
     await execa(

@@ -49,7 +49,7 @@ describe("saveConfig", () => {
   let configPath: string;
 
   beforeEach(async () => {
-    tmpDir = join(tmpdir(), `scvn-save-test-${Date.now()}`);
+    tmpDir = join(tmpdir(), `gdf-save-test-${Date.now()}`);
     await mkdir(tmpDir, { recursive: true });
     configPath = join(tmpDir, "config");
   });
@@ -90,7 +90,7 @@ describe("saveConfig", () => {
     await saveConfig({}, { configPath });
 
     const content = await readFile(configPath, "utf8");
-    expect(content).toContain("# scvn config");
+    expect(content).toContain("# gdf config");
     expect(content).toContain("SCVN_PROJECTS_ROOT");
     expect(content).not.toContain("SCVN_FORK_LAST_UNITY");
   });

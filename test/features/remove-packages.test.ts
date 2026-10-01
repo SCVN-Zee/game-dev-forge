@@ -43,7 +43,7 @@ describe("removePackages", () => {
   let slot: string;
 
   beforeEach(async () => {
-    storeDir = join(tmpdir(), `scvn-remove-pkgs-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    storeDir = join(tmpdir(), `gdf-remove-pkgs-${Date.now()}-${Math.random().toString(36).slice(2)}`);
     slot = join(storeDir, "packages");
     await mkdir(join(slot, "Assets", "vFolders"), { recursive: true });
     await mkdir(join(slot, "Assets", "Plugins", "Sirenix"), { recursive: true });

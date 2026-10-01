@@ -3,7 +3,7 @@
  *
  * The store is a LIBRARY: meta.json holds a list of staged packages, each
  * carrying its own provenance (source project, branch, when it was staged, size).
- * Packages accumulate across `scvn packages add` runs from different projects;
+ * Packages accumulate across `gdf packages add` runs from different projects;
  * `remove` drops individual entries. The staged list — not the store directory
  * contents — is the truth at import time.
  *

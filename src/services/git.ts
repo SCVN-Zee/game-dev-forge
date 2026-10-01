@@ -1,7 +1,7 @@
 /**
  * services/git.ts — Thin execa wrappers around git CLI.
  *
- * Ported from sync-unity/src/services/git.ts with import paths adjusted for scvn.
+ * Ported from sync-unity/src/services/git.ts with import paths adjusted for gdf.
  * All functions use array args (no shell interpolation).
  */
 
@@ -276,7 +276,7 @@ export async function listNestedGitignores(repoRoot: string): Promise<string[]> 
 
 /**
  * List files that are tracked in the index but now match the repo's ignore
- * rules — the set that `scvn git --ignore` should untrack. Uses
+ * rules — the set that `gdf git --ignore` should untrack. Uses
  * `git ls-files -z -i -c --exclude-standard` (the `-i` flag requires `-c`/`-o`
  * plus `--exclude-standard`; `-c` restricts to tracked/cached files). Paths are
  * repo-root-relative POSIX. NUL-delimited so filenames with spaces/newlines are

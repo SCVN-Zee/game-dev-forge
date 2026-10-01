@@ -1,11 +1,11 @@
 /**
  * commands/setup.ts — Linear clack flow for the project-bootstrap op:
- * `scvn ignore-dirty`.
+ * `gdf ignore-dirty`.
  *
  * v0.3: each op is a first-class command. There is no setup namespace, no
- * operation menu, and no run-all orchestrator. `scvn fork` is a sibling
- * command (commands/fork.ts) and never enters this module. `scvn gitignore` /
- * `scvn gitexclude` were grouped into `scvn git` in v0.5 (commands/git.ts) —
+ * operation menu, and no run-all orchestrator. `gdf fork` is a sibling
+ * command (commands/fork.ts) and never enters this module. `gdf gitignore` /
+ * `gdf gitexclude` were grouped into `gdf git` in v0.5 (commands/git.ts) —
  * their handlers still live in features/setup but no longer route here.
  *
  * Flow:
@@ -36,7 +36,7 @@ import type { SubmoduleConfirm } from "../features/setup/toggle-submodule-ignore
 
 /**
  * The bootstrap op handled by this module (fork lives in fork.ts).
- * gitignore/gitexclude moved to `scvn git` in v0.5.
+ * gitignore/gitexclude moved to `gdf git` in v0.5.
  */
 export type SetupOp = "ignore-dirty";
 
@@ -131,7 +131,7 @@ export async function runSetupOp(
   const dryRun  = args.dryRun  ?? false;
   const autoYes = args.autoYes ?? false;
 
-  output.intro(`scvn ${op}`);
+  output.intro(`gdf ${op}`);
 
   // -------------------------------------------------------------------------
   // Resolve target: flag → env → interactive (never auto-pick under --yes).

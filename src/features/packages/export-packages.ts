@@ -1,7 +1,7 @@
 /**
  * features/packages/export-packages.ts — Add selected packages to the library.
  *
- * This is the "add" operation (surfaced as `scvn packages add`). It stages the
+ * This is the "add" operation (surfaced as `gdf packages add`). It stages the
  * given packages from a source project INTO the store library, MERGING with
  * whatever is already staged — packages added earlier from other projects are
  * preserved. Re-adding a relPath re-copies its mirror and updates its entry.
@@ -10,7 +10,7 @@
  * picked folder into { projectRoot, relPath, label }). Nothing is re-validated
  * here: resolveAddFolder already rejected unsafe paths. importPackages does
  * re-check, because ITS input is meta.json — on-disk state possibly written by
- * an older scvn. The asymmetry is deliberate.
+ * an older gdf. The asymmetry is deliberate.
  *
  * Steps:
  *   1. confirm() with per-package sizes — decline → skipped/Aborted (no writes)

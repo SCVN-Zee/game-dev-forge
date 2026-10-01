@@ -1,4 +1,4 @@
-/** Lightweight argv parser for scvn. */
+/** Lightweight argv parser for gdf. */
 
 export interface ParsedArgs {
   help: boolean;

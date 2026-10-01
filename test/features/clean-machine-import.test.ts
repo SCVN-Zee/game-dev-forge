@@ -35,9 +35,9 @@ describe("clean machine: empty user store falls back to the bundled store", () =
   });
 
   it("resolves bundled for packages and applies them from the bundled slot", async () => {
-    const bundled   = await tmpDir("scvn-bundled-");
-    const emptyUser = await tmpDir("scvn-emptyuser-");
-    const target    = await tmpDir("scvn-target-");
+    const bundled   = await tmpDir("gdf-bundled-");
+    const emptyUser = await tmpDir("gdf-emptyuser-");
+    const target    = await tmpDir("gdf-target-");
 
     // Seed the bundled store exactly as `make pack` ships it: store/packages.
     await mkdir(path.join(bundled, "packages", "vFolders"), { recursive: true });

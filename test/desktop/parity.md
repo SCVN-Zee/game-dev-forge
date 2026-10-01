@@ -26,13 +26,13 @@ Run each against a **copy** of a fixture project, once via the CLI and once via
 the packaged app, then `diff -r` the touched files. Expect zero diff.
 
 1. **Build the app:** `npm run desktop:pack` → open
-   `dist-desktop-pack/mac-arm64/Supercent VN Tools.app`.
-2. **git** — `scvn git --ignore --exclude --lfs --target <fixture>/Assets` vs the
+   `dist-desktop-pack/mac-arm64/Game Dev Forge.app`.
+2. **git** — `gdf git --ignore --exclude --lfs --target <fixture>/Assets` vs the
    Git capability with the same checkboxes + folder. Diff `.gitignore`,
    `.git/info/exclude`, `.gitattributes`.
-3. **packages** — `scvn packages` export from a source project vs the Packages
+3. **packages** — `gdf packages` export from a source project vs the Packages
    capability (export). Diff the produced snapshot.
-4. **fork** *(macOS with Fork.app + Beyond Compare + Unity)* — `scvn fork -n` vs
+4. **fork** *(macOS with Fork.app + Beyond Compare + Unity)* — `gdf fork -n` vs
    the Fork form with Dry run checked. Both report the same pending writes.
 
 ## Headless launch smoke (CI-friendly)
@@ -42,7 +42,7 @@ pipe and exits 0:
 
 ```sh
 SCVN_DESKTOP_SELFTEST=doctor \
-  "dist-desktop-pack/mac-arm64/Supercent VN Tools.app/Contents/MacOS/Supercent VN Tools"
+  "dist-desktop-pack/mac-arm64/Game Dev Forge.app/Contents/MacOS/Game Dev Forge"
 echo $?   # 0
 ```
 
