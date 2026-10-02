@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tiered macOS build + sign + publish for the release workflows.
+# Tiered macOS build + sign for the release workflows; never publishes artifacts.
 #
 # Usage: build-sign-publish.sh <stable|beta>
 #
@@ -22,15 +22,29 @@ case "$CHANNEL" in
   beta) BASE="desktop:publish:beta" ;;
   *) echo "::error::unknown channel '$CHANNEL' (expected stable|beta)"; exit 1 ;;
 esac
+: "${GITHUB_REF_NAME:?release tag is required}"
+: "${GH_TOKEN:?GH_TOKEN is required for release asset upload}"
+VERSION="$(node -p "require('./package.json').version")"
+EXPECTED_TAG="v${VERSION}"
+if [ "$GITHUB_REF_NAME" != "$EXPECTED_TAG" ]; then
+  echo "::error::tag $GITHUB_REF_NAME does not match package version $EXPECTED_TAG"
+  exit 1
+fi
+if [ "$CHANNEL" = stable ]; then
+  case "$VERSION" in *-*) echo "::error::stable release requires a non-prerelease version"; exit 1 ;; esac
+else
+  case "$VERSION" in *-*) : ;; *) echo "::error::beta release requires a prerelease version"; exit 1 ;; esac
+fi
+OUT_DIR="dist-desktop-pack"
+DMG="$OUT_DIR/game-dev-forge-${VERSION}-arm64.dmg"
+ZIP="$OUT_DIR/game-dev-forge-${VERSION}-arm64.zip"
 
 if [ -n "${CSC_LINK:-}" ]; then
   echo "Signing mode: Apple Developer ID (signed + notarized)."
   npm run "$BASE"
-
 elif [ -n "${SCVN_SELFSIGN_P12:-}" ]; then
   echo "Signing mode: self-signed (not notarized; first run needs right-click -> Open)."
   : "${SCVN_SELFSIGN_PASSWORD:?SCVN_SELFSIGN_PASSWORD is required alongside SCVN_SELFSIGN_P12}"
-
   KC="${RUNNER_TEMP:-/tmp}/scvn-selfsign.keychain-db"
   KCPASS="$(openssl rand -hex 20)"
   P12="${RUNNER_TEMP:-/tmp}/scvn-selfsign.p12"
@@ -40,7 +54,6 @@ elif [ -n "${SCVN_SELFSIGN_P12:-}" ]; then
   security set-keychain-settings -lut 21600 "$KC"
   security unlock-keychain -p "$KCPASS" "$KC"
   security import "$P12" -k "$KC" -P "$SCVN_SELFSIGN_PASSWORD" -T /usr/bin/codesign
-  # Allow codesign to use the private key non-interactively.
   security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KCPASS" "$KC" >/dev/null
   # Make the identity resolvable to codesign via the user search list.
   security list-keychains -d user -s "$KC" $(security list-keychains -d user | sed 's/["[:space:]]//g')
@@ -65,7 +78,6 @@ elif [ -n "${SCVN_SELFSIGN_P12:-}" ]; then
   export CSC_IDENTITY_AUTO_DISCOVERY=false
 
   npm run "$BASE:selfsigned"
-
 else
   echo "Signing mode: ad-hoc (valid signature)."
   # electron-builder treats a defined-but-empty CSC_LINK as an explicit cert
@@ -74,3 +86,8 @@ else
   export CSC_IDENTITY_AUTO_DISCOVERY=false
   npm run "$BASE:adhoc"
 fi
+
+# Require exactly the expected installable pair; never upload blockmaps or update metadata.
+[ -s "$DMG" ] || { echo "::error::missing release DMG: $DMG"; exit 1; }
+[ -s "$ZIP" ] || { echo "::error::missing release ZIP: $ZIP"; exit 1; }
+gh release upload "$GITHUB_REF_NAME" "$DMG" "$ZIP" --repo "$GH_REPO"

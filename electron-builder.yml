@@ -39,7 +39,9 @@ asarUnpack:
 
 npmRebuild: false
 
-# Publish manual-install downloads without auto-update metadata.
+# Publish manual-install downloads without auto-update metadata. Build workflows
+# use --publish never and explicitly upload only the DMG and ZIP release assets;
+# disabling metadata alone does not suppress ZIP blockmap artifact uploads.
 publish:
   provider: github
   owner: SCVN-Zee
@@ -49,14 +51,15 @@ publish:
 mac:
   category: public.app-category.developer-tools
   icon: desktop/build/icon.icns
+  artifactName: game-dev-forge-${version}-${arch}.${ext}
   target:
     - dir
     - dmg
+    - zip
   # Hardened runtime + entitlements are required for notarization. They only
   # take effect when a signing identity is present; unsigned local builds
   # (CSC_IDENTITY_AUTO_DISCOVERY=false) skip signing and ignore these.
   hardenedRuntime: true
-  gatekeeperAssess: false
   entitlements: desktop/build/entitlements.mac.plist
   entitlementsInherit: desktop/build/entitlements.mac.inherit.plist
   # notarize with the ambient Apple credentials during a signed release.

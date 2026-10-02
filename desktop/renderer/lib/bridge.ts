@@ -10,7 +10,7 @@
  * listener is registered before the invoke, avoiding a first-event race.
  */
 
-import type { FromHost, RequestId, PromptValue } from "@shared/ipc";
+import type { FromHost, RequestId, PromptValue, UpdateChannel, UpdateState } from "@shared/ipc";
 
 export function bridge() {
   return window.scvn;
@@ -51,4 +51,13 @@ export function pickSaveFile(
   options?: { title?: string; defaultPath?: string },
 ): Promise<string | null> {
   return window.scvn.pickSaveFile(options);
+}
+
+export function getUpdateState(): Promise<UpdateState> { return window.scvn.getUpdateState(); }
+export function setUpdateChannel(channel: UpdateChannel): Promise<UpdateState> { return window.scvn.setUpdateChannel(channel); }
+export function checkForUpdates(): Promise<UpdateState> { return window.scvn.checkForUpdates(); }
+export function downloadUpdate(): Promise<UpdateState> { return window.scvn.downloadUpdate(); }
+export function installUpdate(): Promise<UpdateState> { return window.scvn.installUpdate(); }
+export function onUpdateState(handler: (state: UpdateState) => void): () => void {
+  return window.scvn.onUpdateState(handler);
 }

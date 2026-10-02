@@ -7,7 +7,7 @@
  * Native dialogs (folder pickers) are owned here too (wired in Phase 3).
  */
 
-import { app, BrowserWindow, dialog, ipcMain, screen, utilityProcess, type OpenDialogOptions, type SaveDialogOptions, type UtilityProcess } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, Menu, screen, utilityProcess, type OpenDialogOptions, type SaveDialogOptions, type UtilityProcess } from "electron";
 import path from "node:path";
 import os from "node:os";
 import fs from "node:fs";
@@ -22,6 +22,7 @@ import {
   windowStateFromBounds,
   type WindowState,
 } from "./window-state.js";
+import { Updates } from "./updates.js";
 
 const CHANNEL_TO_HOST = "scvn:to-host";
 const CHANNEL_FROM_HOST = "scvn:from-host";
@@ -46,6 +47,11 @@ const MAX_HOST_RESPAWNS = 5;
 let mainWindow: BrowserWindow | null = null;
 let host: UtilityProcess | null = null;
 let hostRespawns = 0;
+let updates: Updates | null = null;
+let quitting = false;
+let quitReady = false;
+let quitForUpdate = false;
+const activeCommands = new Set<string>();
 
 /** Fork the command host and relay its messages to the renderer. */
 function spawnHost(): void {
@@ -55,6 +61,7 @@ function spawnHost(): void {
   });
 
   host.on("message", (message: FromHost) => {
+    if (message.kind === "result" || message.kind === "error") activeCommands.delete(message.requestId);
     // Directory/file text prompts are answered by a native picker in main,
     // never forwarded to the renderer (the headline folder-browse UX).
     if (message.kind === "prompt-request" && message.prompt.type === "text" &&
@@ -67,9 +74,17 @@ function spawnHost(): void {
 
   host.on("spawn", () => process.stderr.write("host spawned\n"));
   host.on("exit", (code) => {
+    const interrupted = [...activeCommands];
+    activeCommands.clear();
+    for (const requestId of interrupted) {
+      mainWindow?.webContents.send(CHANNEL_FROM_HOST, {
+        kind: "error", requestId, name: "HostExited",
+        message: `Command host exited (${code}); the operation was interrupted. Check project state before retrying.`,
+      } satisfies FromHost);
+    }
     mainWindow?.webContents.send(CHANNEL_HOST_STATUS, { kind: "host-exit", code });
     host = null;
-    if (hostRespawns < MAX_HOST_RESPAWNS) {
+    if (!quitting && hostRespawns < MAX_HOST_RESPAWNS) {
       hostRespawns += 1;
       spawnHost();
       mainWindow?.webContents.send(CHANNEL_HOST_STATUS, { kind: "host-respawn", attempt: hostRespawns });
@@ -79,6 +94,10 @@ function spawnHost(): void {
 
 /** Send a message to the host, or surface an error if it is not running. */
 function sendToHost(message: ToHost): void {
+  if (quitting && message.kind === "invoke") {
+    mainWindow?.webContents.send(CHANNEL_FROM_HOST, { kind: "error", requestId: message.requestId, name: "AppQuitting", message: "Application is restarting; no new operations can start." } satisfies FromHost);
+    return;
+  }
   if (!host) {
     if (message.kind === "invoke") {
       mainWindow?.webContents.send(CHANNEL_FROM_HOST, {
@@ -90,6 +109,7 @@ function sendToHost(message: ToHost): void {
     }
     return;
   }
+  if (message.kind === "invoke") activeCommands.add(message.requestId);
   host.postMessage(message);
 }
 
@@ -257,9 +277,51 @@ function createWindow(): void {
   });
 }
 
-app.whenReady().then(() => {
-  // Renderer → host relay.
-  ipcMain.on(CHANNEL_TO_HOST, (_event, message: ToHost) => sendToHost(message));
+app.whenReady().then(async () => {
+  updates = await Updates.create({
+    currentVersion: app.isPackaged ? app.getVersion() : (JSON.parse(fs.readFileSync(path.join(__dirname, "../package.json"), "utf8")) as { version: string }).version,
+    supported: app.isPackaged && process.platform === "darwin" && process.arch === "arm64" && !SELFTEST,
+    target: path.resolve(app.getAppPath(), "../../.."),
+    userData: app.getPath("userData"),
+    helperSource: path.join(__dirname, "install-update.sh"),
+    changed: (state) => {
+      mainWindow?.webContents.send("scvn:updates:changed", state);
+    },
+    confirm: async (message, detail, action) => {
+      const result = await dialog.showMessageBox({ type: "info", message, detail, buttons: [action, "Later"], defaultId: 1, cancelId: 1, noLink: true });
+      return result.response === 0;
+    },
+    isBusy: () => activeCommands.size > 0,
+    requestRestart: () => { quitForUpdate = true; app.quit(); },
+  });
+  for (const [action, handler] of Object.entries({
+    state: () => updates!.getState(),
+    channel: (channel: unknown) => {
+      if (channel !== "stable" && channel !== "beta") throw new Error("Invalid update channel.");
+      return updates!.setChannel(channel);
+    },
+    check: () => updates!.check(),
+    download: () => updates!.download(),
+    install: () => updates!.install(),
+  })) {
+    ipcMain.handle(`scvn:updates:${action}`, (event, argument: unknown) => {
+      if (event.sender !== mainWindow?.webContents || event.senderFrame !== mainWindow.webContents.mainFrame) throw new Error("Untrusted updater request.");
+      return handler(argument);
+    });
+  }
+  Menu.setApplicationMenu(Menu.buildFromTemplate([
+    { label: app.name, submenu: [{ role: "about" }, { type: "separator" },
+      { label: "Check for Updates…", click: () => { void updates!.check().then(async (state) => {
+        if (state.phase === "available") await updates!.download();
+        else if (state.phase === "ready") await updates!.install();
+        else await dialog.showMessageBox({ message: state.message ?? "An update operation is already in progress.", type: state.phase === "error" ? "error" : "info" });
+      }); } },
+      { type: "separator" }, { role: "services" }, { role: "hide" }, { role: "hideOthers" }, { role: "unhide" }, { type: "separator" }, { role: "quit" }] },
+    { role: "editMenu" }, { role: "viewMenu" }, { role: "windowMenu" },
+  ]));
+  ipcMain.on(CHANNEL_TO_HOST, (event, message: ToHost) => {
+    if (event.sender === mainWindow?.webContents) sendToHost(message);
+  });
 
   // Headless self-test report: only wired in self-test mode, so a normal
   // renderer can never trigger app.exit() through this channel.
@@ -282,6 +344,7 @@ app.whenReady().then(() => {
 
   spawnHost();
   createWindow();
+  if (!SELFTEST) void updates.check(false);
 
   // Safety net: if the self-test never reports, fail rather than hang forever.
   if (SELFTEST) {
@@ -298,4 +361,35 @@ app.whenReady().then(() => {
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
+});
+
+app.on("before-quit", (event) => {
+  if (quitReady) return;
+  event.preventDefault();
+  if (quitting) return;
+  if (quitForUpdate && activeCommands.size > 0) {
+    quitForUpdate = false;
+    updates?.installationFailed(new Error("Finish active project operations before restarting to update."));
+    return;
+  }
+  quitting = true;
+  void (async () => {
+    if (quitForUpdate) {
+      const process = host;
+      if (process) await new Promise<void>((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error("Command host did not exit; update cancelled.")), 5000);
+        process.once("exit", () => { clearTimeout(timer); resolve(); });
+        process.kill();
+      });
+      await updates!.launch();
+    } else await updates?.discard();
+    quitReady = true;
+    app.quit();
+  })().catch((error: unknown) => {
+    quitting = false;
+    quitForUpdate = false;
+    updates?.installationFailed(error);
+    if (!host) spawnHost();
+    dialog.showErrorBox("Cannot install update", error instanceof Error ? error.message : String(error));
+  });
 });

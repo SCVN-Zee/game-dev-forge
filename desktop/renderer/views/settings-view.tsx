@@ -1,9 +1,7 @@
 /**
  * desktop/renderer/views/settings-view.tsx — The Settings page.
  *
- * Two sub-tabs merged from the former standalone capabilities:
- *  - Config: edit the Unity projects root (config:prepare to load, config to save).
- *  - Doctor: run environment checks and stream the results inline.
+ * Three sub-tabs: Config, Doctor, and Updates.
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -15,7 +13,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { invokeForResult, pickDirectory } from "@/lib/bridge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { checkForUpdates, downloadUpdate, getUpdateState, installUpdate, onUpdateState, setUpdateChannel, invokeForResult, pickDirectory } from "@/lib/bridge";
+import type { UpdateChannel, UpdateState } from "@shared/ipc";
 import {
   cancelQueuedConfigSave,
   enqueueConfigSave,
@@ -31,22 +31,89 @@ export function SettingsView(): React.JSX.Element {
       <PageHeader title="Settings" />
       <Tabs defaultValue="config" className="flex min-h-0 flex-1 flex-col gap-2">
         <TabsList className="h-8 w-fit shrink-0 gap-1 rounded-lg border border-border bg-muted/30 p-1">
-          <TabsTrigger value="config" className="h-6 rounded-md px-3 text-xs">
-            Config
-          </TabsTrigger>
-          <TabsTrigger value="doctor" className="h-6 rounded-md px-3 text-xs">
-            Doctor
-          </TabsTrigger>
+          <TabsTrigger value="config" className="h-6 rounded-md px-3 text-xs">Config</TabsTrigger>
+          <TabsTrigger value="doctor" className="h-6 rounded-md px-3 text-xs">Doctor</TabsTrigger>
+          <TabsTrigger value="updates" className="h-6 rounded-md px-3 text-xs">Updates</TabsTrigger>
         </TabsList>
-        <TabsContent value="config" className="m-0 flex min-h-0 flex-1 flex-col">
-          <ConfigPanel />
-        </TabsContent>
-        <TabsContent value="doctor" className="m-0 flex min-h-0 flex-1 flex-col">
-          <DoctorPanel />
-        </TabsContent>
+        <TabsContent value="config" className="m-0 flex min-h-0 flex-1 flex-col"><ConfigPanel /></TabsContent>
+        <TabsContent value="doctor" className="m-0 flex min-h-0 flex-1 flex-col"><DoctorPanel /></TabsContent>
+        <TabsContent value="updates" className="m-0 flex min-h-0 flex-1 flex-col"><UpdatesPanel /></TabsContent>
       </Tabs>
     </div>
   );
+}
+
+function UpdatesPanel(): React.JSX.Element {
+  const [state, setState] = useState<UpdateState | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [channelBusy, setChannelBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const latestEvent = useRef(0);
+  const operation = useRef(0);
+
+  useEffect(() => {
+    let active = true;
+    const off = onUpdateState((next) => { latestEvent.current += 1; if (active) setState(next); });
+    const startEvent = latestEvent.current;
+    void getUpdateState().then((next) => { if (active && latestEvent.current === startEvent) setState(next); })
+      .catch((reason: unknown) => { if (active) setError(errorMessage(reason)); });
+    return () => { active = false; off(); };
+  }, []);
+
+  async function run(action: () => Promise<UpdateState>): Promise<void> {
+    const request = ++operation.current;
+    setBusy(true); setError(null);
+    try { const next = await action(); if (operation.current === request) setState(next); }
+    catch (reason) { if (operation.current === request) setError(errorMessage(reason)); }
+    finally { if (operation.current === request) setBusy(false); }
+  }
+
+  async function changeChannel(channel: UpdateChannel): Promise<void> {
+    const request = ++operation.current;
+    setBusy(false); setChannelBusy(true); setError(null);
+    try { const next = await setUpdateChannel(channel); if (operation.current === request) setState(next); }
+    catch (reason) { if (operation.current === request) setError(errorMessage(reason)); }
+    finally { if (operation.current === request) setChannelBusy(false); }
+  }
+
+  const loading = busy || channelBusy || state === null || ["checking", "downloading", "installing"].includes(state?.phase ?? "");
+  const canCheck = !busy && !channelBusy && state !== null && state.phase !== "checking" && state.phase !== "downloading" && state.phase !== "installing";
+  const action = state?.phase === "available" ? "download" : state?.phase === "ready" ? "install" : "check";
+
+  return (
+    <Card className="gap-0 p-0">
+      <CardContent className="flex flex-col gap-5 p-5">
+        <div className="space-y-1"><h2 className="text-sm font-semibold">Application updates</h2>
+          <p className="text-sm text-muted-foreground">Choose a release channel and check for desktop app updates.</p></div>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="space-y-1"><Label htmlFor="update-channel">Release channel</Label>
+            <p className="text-xs text-muted-foreground">Stable is recommended; beta receives prereleases.</p></div>
+          <Select value={state?.channel ?? "stable"} disabled={!state || channelBusy || state.phase === "installing"} onValueChange={(value) => void changeChannel(value as UpdateChannel)}>
+            <SelectTrigger id="update-channel" className="w-40"><SelectValue /></SelectTrigger>
+            <SelectContent><SelectItem value="stable">Stable</SelectItem><SelectItem value="beta">Beta</SelectItem></SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border p-4">
+          <div className="space-y-1"><p className="text-xs text-muted-foreground">Installed version</p>
+            <p className="font-mono text-sm">{state?.currentVersion ?? "Loading…"}</p></div>
+          <Button disabled={!canCheck || (action !== "check" && !state?.supported)} onClick={() => void run(action === "download" ? downloadUpdate : action === "install" ? installUpdate : checkForUpdates)}>
+            {loading && <LoaderCircle className="size-4 animate-spin" />}
+            {action === "download" ? "Download update" : action === "install" ? "Install and restart" : "Check for updates"}
+          </Button>
+        </div>
+        {state && !state.supported && <p className="text-sm text-muted-foreground">Updates are supported for installed macOS arm64 builds only. You can still select a release channel.</p>}
+        {state?.version && <p className="text-sm text-muted-foreground">Version {state.version} is available.</p>}
+        {state?.phase === "downloading" && typeof state.percent === "number" && <div className="space-y-1" role="status"><div className="flex justify-between text-xs"><span>Downloading</span><span>{Math.round(state.percent)}%</span></div><progress className="h-2 w-full accent-primary" max={100} value={state.percent} aria-label="Update download progress" /></div>}
+        {state?.phase === "ready" && <p className="text-sm text-success">Update downloaded and ready to install.</p>}
+        {state?.message && <p className={cn("text-sm", state.phase === "error" ? "text-destructive" : "text-muted-foreground")} role={state.phase === "error" ? "alert" : "status"}>{state.message}</p>}
+        {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+      </CardContent>
+    </Card>
+  );
+}
+
+function errorMessage(reason: unknown): string {
+  return reason instanceof Error ? reason.message : String(reason);
 }
 
 type StatusKind = "info" | "error" | "success";

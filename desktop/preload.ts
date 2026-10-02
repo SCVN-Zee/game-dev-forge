@@ -15,7 +15,12 @@ const CHANNEL_FROM_HOST = "scvn:from-host";
 const CHANNEL_SELFTEST = "scvn:selftest";
 const CHANNEL_PICK_DIR = "scvn:pick-dir";
 const CHANNEL_PICK_SAVE = "scvn:pick-save";
-
+const CHANNEL_UPDATE_STATE = "scvn:updates:state";
+const CHANNEL_UPDATE_CHANNEL = "scvn:updates:channel";
+const CHANNEL_UPDATE_CHECK = "scvn:updates:check";
+const CHANNEL_UPDATE_DOWNLOAD = "scvn:updates:download";
+const CHANNEL_UPDATE_INSTALL = "scvn:updates:install";
+const CHANNEL_UPDATE_CHANGED = "scvn:updates:changed";
 const bridge: ScvnBridge & { __selftest(ok: boolean): void } = {
   invoke(command: string, args?: unknown): RequestId {
     // Web Crypto global — available in a sandboxed preload (node:crypto is not).
@@ -47,6 +52,17 @@ const bridge: ScvnBridge & { __selftest(ok: boolean): void } = {
 
   pickSaveFile(options?: { title?: string; defaultPath?: string }): Promise<string | null> {
     return ipcRenderer.invoke(CHANNEL_PICK_SAVE, options ?? {}) as Promise<string | null>;
+  },
+
+  getUpdateState() { return ipcRenderer.invoke(CHANNEL_UPDATE_STATE); },
+  setUpdateChannel(channel) { return ipcRenderer.invoke(CHANNEL_UPDATE_CHANNEL, channel); },
+  checkForUpdates() { return ipcRenderer.invoke(CHANNEL_UPDATE_CHECK); },
+  downloadUpdate() { return ipcRenderer.invoke(CHANNEL_UPDATE_DOWNLOAD); },
+  installUpdate() { return ipcRenderer.invoke(CHANNEL_UPDATE_INSTALL); },
+  onUpdateState(handler) {
+    const listener = (_event: unknown, state: Parameters<typeof handler>[0]): void => handler(state);
+    ipcRenderer.on(CHANNEL_UPDATE_CHANGED, listener);
+    return () => ipcRenderer.removeListener(CHANNEL_UPDATE_CHANGED, listener);
   },
 
   /** Test-only: report the headless self-test outcome so main can exit. */

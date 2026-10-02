@@ -269,7 +269,7 @@ npm run desktop:release   # signs (hardened runtime) + notarizes + staples
 Verify the result: `spctl -a -vv "dist-desktop-pack/mac-arm64/Game Dev Forge.app"` (accepted)
 and `xcrun stapler validate "dist-desktop-pack/Game Dev Forge-"*.dmg`.
 
-### Automated releases & manual updates
+### Automated releases & application updates
 
 Releases are **tag-driven** on an Apple-Silicon runner using Node 24 and publish
 to [SCVN-Zee/game-dev-forge](https://github.com/SCVN-Zee/game-dev-forge/releases).
@@ -290,8 +290,11 @@ git push origin main --tags
 ```
 
 Both workflows share `.github/scripts/build-sign-publish.sh`, which selects the
-**best available signing tier** and publishes a `.dmg` for manual installation.
-Update manifests, differential-download blockmaps, and updater ZIPs are not shipped.
+**best available signing tier** and builds a DMG plus a full updater ZIP.
+Builds use `--publish never`; explicit GitHub uploads include only these two
+artifacts. Local blockmaps/build reports are not uploaded, and no updater
+manifests are required. A draft is published only after its asset allowlist is
+verified; reruns refuse already-published tags.
 
 | Tier | Enabled by | First run |
 | --- | --- | --- |
@@ -315,10 +318,27 @@ set via `SCVN_TABS=fork,git,init,settings` (baked into the renderer catalog and
 host registry); build that variant locally by prefixing any desktop script, e.g.
 `SCVN_TABS=fork,git,init,settings npm run desktop:pack`.
 
-Install newer builds manually from this repository’s GitHub Releases.
-Replace the app in Applications; existing
-settings are preserved. The app has no update checks, download/install controls,
-or update-channel preferences. Settings contains only Config and Doctor.
+Open **Settings → Updates** or the app menu’s **Check for Updates…**. Installed
+macOS arm64 builds check GitHub’s public releases on startup. Stable is the
+default; Beta includes newer prereleases and stable releases. Channel changes
+are saved under the desktop profile and never downgrade the installed version.
+
+Downloads and restarts require separate confirmations. The updater checks ZIP
+size, SHA-256, archive path/symlink safety, bundle identity/version/architecture, and
+signature integrity before installation. Active project operations prevent
+update restarts; if the command host exits, interrupted requests fail explicitly
+and stop blocking restarts after respawn. Inspect project state before retrying.
+Installation replaces only the app and retains its previous
+bundle for recovery; installer-command failures restore it. Preferences,
+templates, and projects stay in place. Signature integrity alone does not prove
+publisher identity for ad-hoc signing; GitHub remains the release trust source.
+
+The first updater-enabled release must be installed manually. Manual DMG
+replacement remains available for read-only/translocated installs, missing
+verified release assets, or macOS launch restrictions. The updater does not
+remove quarantine or bypass Gatekeeper. Settings contains Config, Doctor, and
+Updates. Runtime ownership: `desktop/main/updates.ts`,
+`desktop/main/update-artifacts.ts`, and `desktop/main/install-update.sh`.
 
 Architecture: a sandboxed renderer (no Node access) draws the UI; the Electron
 main process owns the window, native dialogs, and an IPC broker; a long-lived

@@ -147,6 +147,18 @@ export type FromHost =
 // Preload-exposed renderer API (window.scvn)
 // ---------------------------------------------------------------------------
 
+export type UpdateChannel = "stable" | "beta";
+
+export interface UpdateState {
+  phase: "idle" | "checking" | "available" | "downloading" | "ready" | "installing" | "error";
+  channel: UpdateChannel;
+  currentVersion: string;
+  supported: boolean;
+  version?: string;
+  percent?: number;
+  message?: string;
+}
+
 /** The API the preload bridge exposes to the renderer as `window.scvn`. */
 export interface ScvnBridge {
   /** Start a command; returns the generated requestId. */
@@ -157,13 +169,16 @@ export interface ScvnBridge {
   respondPrompt(requestId: RequestId, promptId: string, value: PromptValue | null): void;
   /** Cancel an in-flight invocation. */
   cancel(requestId: RequestId): void;
-  /**
-   * Open a native folder/file picker outside any run session (used by launch
-   * forms). Resolves to the chosen path, or null when cancelled.
-   */
+  /** Open a native folder/file picker outside any run session. */
   pickDirectory(options?: { kind?: "dir" | "path"; title?: string; defaultPath?: string }): Promise<string | null>;
   /** Open a native Save As dialog outside any run session. */
   pickSaveFile(options?: { title?: string; defaultPath?: string }): Promise<string | null>;
+  getUpdateState(): Promise<UpdateState>;
+  setUpdateChannel(channel: UpdateChannel): Promise<UpdateState>;
+  checkForUpdates(): Promise<UpdateState>;
+  downloadUpdate(): Promise<UpdateState>;
+  installUpdate(): Promise<UpdateState>;
+  onUpdateState(handler: (state: UpdateState) => void): () => void;
 }
 
 declare global {

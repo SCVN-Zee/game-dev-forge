@@ -1,5 +1,5 @@
 # STABLE release. A `v<version>` tag (e.g. v0.5.0) builds the macOS app and
-# publishes the dmg to GitHub Releases for manual installation.
+# publishes only the DMG and full updater ZIP to GitHub Releases.
 #
 # Signing is tiered (shared script build-sign-publish.sh), best available first:
 #   1. Apple Developer ID + notarization (CSC_LINK) — opens normally.
@@ -67,39 +67,44 @@ jobs:
           npm run build
           npm test
 
-      # electron-builder runs parallel GitHub uploaders; if the release does not
-      # yet exist they race and each creates a separate draft, splitting assets
-      # across duplicates. Pre-creating one draft makes every uploader attach to
-      # it. Idempotent: re-runs reuse the existing release for this tag.
-      - name: Ensure a single draft release exists
+      # Build in no-publish mode: --publish uploads ZIP blockmaps independently
+      # of publishAutoUpdate, so only the script's explicit DMG/ZIP upload is safe.
+      - name: Prepare unpublished draft release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
+          if gh release view "$GITHUB_REF_NAME" --json isDraft --jq .isDraft >/tmp/release-is-draft 2>/dev/null; then
+            if [ "$(cat /tmp/release-is-draft)" != true ]; then
+              echo "::error::release $GITHUB_REF_NAME is already published; refusing to replace assets"
+              exit 1
+            fi
+          else
             gh release create "$GITHUB_REF_NAME" --draft \
               --title "$GITHUB_REF_NAME" \
               --notes "Automated release $GITHUB_REF_NAME."
-
-      - name: Build, sign, and publish
+          fi
+      - name: Build, sign, and upload DMG/ZIP
         env:
-          # Generic build-time tab selection: ship the full tab set.
           SCVN_TABS: fork,git,init,settings
-          # Tier 1 — Apple Developer ID (empty string when the secret is unset).
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          # Tier 2 — self-signed cert.
           SCVN_SELFSIGN_P12: ${{ secrets.SCVN_SELFSIGN_P12 }}
           SCVN_SELFSIGN_PASSWORD: ${{ secrets.SCVN_SELFSIGN_PASSWORD }}
-          # Publish manual-install downloads to this repo.
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # Tiered signing (Developer ID -> self-signed -> ad-hoc).
         run: bash .github/scripts/build-sign-publish.sh stable
 
-      # Publish only after all manual-install assets have uploaded successfully.
-      - name: Publish the release
+      - name: Verify release asset allowlist and publish stable latest
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release edit "$GITHUB_REF_NAME" --draft=false --latest
+        run: |
+          assets="$(gh release view "$GITHUB_REF_NAME" --json assets --jq '.assets[].name' | sort)"
+          expected="$(printf '%s\n' "game-dev-forge-$(node -p "require('./package.json').version")-arm64.dmg" "game-dev-forge-$(node -p "require('./package.json').version")-arm64.zip" | sort)"
+          if [ "$assets" != "$expected" ]; then
+            echo "::error::release contains files outside the DMG/ZIP allowlist"
+            printf 'Expected:\n%s\nFound:\n%s\n' "$expected" "$assets"
+            exit 1
+          fi
+          gh release edit "$GITHUB_REF_NAME" --draft=false --latest

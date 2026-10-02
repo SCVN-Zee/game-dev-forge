@@ -20,17 +20,17 @@
     "desktop:dev": "node desktop/scripts/dev.mjs",
     "desktop:build:main": "tsup --config tsup.desktop.config.ts",
     "desktop:build:renderer": "vite build",
-    "desktop:build:assets": "node -e \"const {cpSync}=require('node:fs');cpSync('templates','dist-desktop/templates',{recursive:true})\"",
+    "desktop:build:assets": "node -e \"const {cpSync}=require('node:fs');cpSync('templates','dist-desktop/templates',{recursive:true});cpSync('desktop/main/install-update.sh','dist-desktop/install-update.sh')\"",
     "desktop:build": "node -e \"require('node:fs').rmSync('dist-desktop',{recursive:true,force:true})\" && npm run desktop:build:main && npm run desktop:build:renderer && npm run desktop:build:assets",
     "desktop:start": "node desktop/scripts/start.mjs",
     "desktop:pack": "npm run desktop:build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --mac --config electron-builder.yml --publish never",
     "desktop:release": "npm run desktop:build && electron-builder --mac --config electron-builder.yml --publish never",
-    "desktop:publish": "npm run desktop:build && electron-builder --mac --config electron-builder.yml --publish always",
-    "desktop:publish:selfsigned": "npm run desktop:build && electron-builder --mac --config electron-builder.yml --publish always -c.mac.identity=- -c.mac.sign=desktop/build/sign.cjs -c.mac.notarize=false -c.mac.hardenedRuntime=false",
-    "desktop:publish:adhoc": "npm run desktop:build && electron-builder --mac --config electron-builder.yml --publish always -c.mac.identity=- -c.mac.hardenedRuntime=false -c.mac.notarize=false",
-    "desktop:publish:beta": "npm run desktop:build && electron-builder --mac --config electron-builder.yml --publish always -c.publish.releaseType=prerelease",
-    "desktop:publish:beta:selfsigned": "npm run desktop:build && electron-builder --mac --config electron-builder.yml --publish always -c.publish.releaseType=prerelease -c.mac.identity=- -c.mac.sign=desktop/build/sign.cjs -c.mac.notarize=false -c.mac.hardenedRuntime=false",
-    "desktop:publish:beta:adhoc": "npm run desktop:build && electron-builder --mac --config electron-builder.yml --publish always -c.publish.releaseType=prerelease -c.mac.identity=- -c.mac.hardenedRuntime=false -c.mac.notarize=false"
+    "desktop:publish": "npm run desktop:build && electron-builder --mac --arm64 --config electron-builder.yml --publish never",
+    "desktop:publish:selfsigned": "npm run desktop:build && electron-builder --mac --arm64 --config electron-builder.yml --publish never -c.mac.identity=- -c.mac.sign=desktop/build/sign.cjs -c.mac.notarize=false -c.mac.hardenedRuntime=false",
+    "desktop:publish:adhoc": "npm run desktop:build && electron-builder --mac --arm64 --config electron-builder.yml --publish never -c.mac.identity=- -c.mac.hardenedRuntime=false -c.mac.notarize=false",
+    "desktop:publish:beta": "npm run desktop:build && electron-builder --mac --arm64 --config electron-builder.yml --publish never -c.publish.releaseType=prerelease",
+    "desktop:publish:beta:selfsigned": "npm run desktop:build && electron-builder --mac --arm64 --config electron-builder.yml --publish never -c.publish.releaseType=prerelease -c.mac.identity=- -c.mac.sign=desktop/build/sign.cjs -c.mac.notarize=false -c.mac.hardenedRuntime=false",
+    "desktop:publish:beta:adhoc": "npm run desktop:build && electron-builder --mac --arm64 --config electron-builder.yml --publish never -c.publish.releaseType=prerelease -c.mac.identity=- -c.mac.hardenedRuntime=false -c.mac.notarize=false"
   },
   "dependencies": {
     "@clack/prompts": "^1.5.1",
@@ -48,13 +48,17 @@
     "picocolors": "^1.1.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "tailwind-merge": "^3.6.0"
+    "semver": "^7.8.5",
+    "tailwind-merge": "^3.6.0",
+    "yauzl": "^3.4.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^20",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
+    "@types/semver": "^7.8.0",
+    "@types/yauzl": "^3.4.0",
     "@vitejs/plugin-react": "^6.1.0",
     "electron": "^44.0.0",
     "electron-builder": "^26.15.3",
