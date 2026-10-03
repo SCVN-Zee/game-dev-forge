@@ -9,9 +9,12 @@ import { pipeline } from "node:stream/promises";
 import semver from "semver";
 import yauzl from "yauzl";
 import type { UpdateChannel } from "../shared/ipc.js";
+import pkg from "../../package.json" with { type: "json" };
 
 const run = promisify(execFile);
-export const UPDATE_REPO = "SCVN-Zee/game-dev-forge";
+export const UPDATE_REPO = pkg.releaseRepository;
+if (!/^[A-Za-z0-9][A-Za-z0-9-]*\/[A-Za-z0-9_.-]+$/.test(UPDATE_REPO) ||
+    ['.', '..'].includes(UPDATE_REPO.split('/')[1] ?? '')) throw new Error('Invalid packaged release repository.');
 export const UPDATE_BUNDLE = "Game Dev Forge.app";
 export interface ReleaseArtifact { version: string; url: string; digest: string; size: number }
 interface ReleaseMetadata {

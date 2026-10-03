@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Tiered macOS build + sign for the release workflows; never publishes artifacts.
 #
-# Usage: build-sign-publish.sh <stable|beta>
+# Usage: scripts/ci/build-sign.sh <stable|beta>
 #
 # Signing tiers, in precedence order (first satisfied wins):
 #   1. Apple Developer ID   (CSC_LINK set)          -> signed + notarized.
@@ -16,14 +16,17 @@
 # possibly-unset name.
 set -euo pipefail
 
-CHANNEL="${1:?usage: build-sign-publish.sh <stable|beta>}"
+CHANNEL="${1:?usage: build-sign.sh <stable|beta>}"
 case "$CHANNEL" in
   stable) BASE="desktop:publish" ;;
   beta) BASE="desktop:publish:beta" ;;
   *) echo "::error::unknown channel '$CHANNEL' (expected stable|beta)"; exit 1 ;;
 esac
 : "${GITHUB_REF_NAME:?release tag is required}"
-: "${GH_TOKEN:?GH_TOKEN is required for release asset upload}"
+REPOSITORY="$(node -p "require('./package.json').releaseRepository")"
+OWNER="${REPOSITORY%%/*}"
+REPO="${REPOSITORY#*/}"
+PUBLISH_CONFIG=(-c.publish.owner="$OWNER" -c.publish.repo="$REPO")
 VERSION="$(node -p "require('./package.json').version")"
 EXPECTED_TAG="v${VERSION}"
 if [ "$GITHUB_REF_NAME" != "$EXPECTED_TAG" ]; then
@@ -41,7 +44,7 @@ ZIP="$OUT_DIR/game-dev-forge-${VERSION}-arm64.zip"
 
 if [ -n "${CSC_LINK:-}" ]; then
   echo "Signing mode: Apple Developer ID (signed + notarized)."
-  npm run "$BASE"
+  npm run "$BASE" -- "${PUBLISH_CONFIG[@]}"
 elif [ -n "${SCVN_SELFSIGN_P12:-}" ]; then
   echo "Signing mode: self-signed (not notarized; first run needs right-click -> Open)."
   : "${SCVN_SELFSIGN_PASSWORD:?SCVN_SELFSIGN_PASSWORD is required alongside SCVN_SELFSIGN_P12}"
@@ -77,17 +80,17 @@ elif [ -n "${SCVN_SELFSIGN_P12:-}" ]; then
   unset CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID 2>/dev/null || true
   export CSC_IDENTITY_AUTO_DISCOVERY=false
 
-  npm run "$BASE:selfsigned"
+  npm run "$BASE:selfsigned" -- "${PUBLISH_CONFIG[@]}"
 else
   echo "Signing mode: ad-hoc (valid signature)."
   # electron-builder treats a defined-but-empty CSC_LINK as an explicit cert
   # path; clear the partial signing env so it behaves like a clean ad-hoc build.
   unset CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID 2>/dev/null || true
   export CSC_IDENTITY_AUTO_DISCOVERY=false
-  npm run "$BASE:adhoc"
+  npm run "$BASE:adhoc" -- "${PUBLISH_CONFIG[@]}"
 fi
 
 # Require exactly the expected installable pair; never upload blockmaps or update metadata.
 [ -s "$DMG" ] || { echo "::error::missing release DMG: $DMG"; exit 1; }
 [ -s "$ZIP" ] || { echo "::error::missing release ZIP: $ZIP"; exit 1; }
-gh release upload "$GITHUB_REF_NAME" "$DMG" "$ZIP" --repo "$GH_REPO"
+# Publication and SHA-256 read-back are owned by publish-release.cjs.

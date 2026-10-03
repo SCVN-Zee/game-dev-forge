@@ -1,89 +1,69 @@
-# STABLE release. A `v<version>` tag (e.g. v0.5.0) builds the macOS app and
-# publishes only the DMG and full updater ZIP to GitHub Releases.
-#
-# Signing is tiered (shared script build-sign-publish.sh), best available first:
-#   1. Apple Developer ID + notarization (CSC_LINK) — opens normally.
-#   2. Self-signed cert (SCVN_SELFSIGN_P12) — right-click→Open on first run.
-#   3. Ad-hoc fallback (no secrets) — right-click→Open on first run.
-#
-# Release routing follows tags, not branch pushes:
-#   - v<version> release (no prerelease id)  → this workflow      (stable)
-#   - v<version> with a prerelease id (v*-*) → release-beta.yml   (beta)
-# The `!v*-*` line below keeps semver prerelease tags off this workflow —
-# without it, `v*` would also match `v0.6.0-beta.1` and double-fire.
-#
-# Optional repository secrets:
-#   Tier 1 (Apple Developer ID + notarization):
-#     CSC_LINK, CSC_KEY_PASSWORD, APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID
-#   Tier 2 (self-signed; generate via .github/scripts/gen-selfsign-cert.sh):
-#     SCVN_SELFSIGN_P12 (base64 .p12), SCVN_SELFSIGN_PASSWORD
-# GITHUB_TOKEN (auto) publishes the release; contents:write is granted below.
-
-name: release-stable
+name: Release Stable
 
 on:
   push:
     tags:
-      - "v*"
-      - "!v*-*" # exclude semver prerelease tags (handled by release-beta.yml)
+      - 'v*'
+      - '!v*-*'
 
-# Supersede in-flight runs for the same tag.
+permissions:
+  contents: read
+
 concurrency:
   group: release-stable-${{ github.ref }}
   cancel-in-progress: false
 
-permissions:
-  contents: write
-
-env:
-  GH_REPO: ${{ github.repository }}
-
 jobs:
-  release:
-    runs-on: macos-14 # Apple Silicon (arm64), matches the shipped target
+  validate:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
-          node-version: "24"
-          cache: npm
+          package-manager-cache: false
+          node-version: '24'
 
-      - name: Verify tag matches package.json version
-        run: |
-          pkg="v$(node -p "require('./package.json').version")"
-          if [ "$pkg" != "${GITHUB_REF_NAME}" ]; then
-            echo "::error::Tag ${GITHUB_REF_NAME} does not match package.json ($pkg). Bump the version to match the tag."
-            exit 1
-          fi
+      - name: Validate channel, tag, lock and repository
+        env:
+          RELEASE_REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+        run: node scripts/ci/validate-release.cjs stable
 
-      - name: Install dependencies
+  sync-readme:
+    permissions:
+      contents: write
+    needs: validate
+    uses: ./.github/workflows/sync-readme.yml
+
+  release:
+    permissions:
+      contents: write
+    needs: sync-readme
+    runs-on: macos-14
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          package-manager-cache: false
+          node-version: '24'
+      - name: Install development dependencies
         run: npm ci
-
+      - name: Sync release README before build
+        run: node scripts/ci/sync-readme-repository.cjs
+      - name: Bake release repository metadata
+        run: node scripts/ci/validate-release.cjs stable --prepare
       - name: Check and test
         run: |
           npm run typecheck
           npm run typecheck:desktop
           npm run build
           npm test
-
-      # Build in no-publish mode: --publish uploads ZIP blockmaps independently
-      # of publishAutoUpdate, so only the script's explicit DMG/ZIP upload is safe.
-      - name: Prepare unpublished draft release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if gh release view "$GITHUB_REF_NAME" --json isDraft --jq .isDraft >/tmp/release-is-draft 2>/dev/null; then
-            if [ "$(cat /tmp/release-is-draft)" != true ]; then
-              echo "::error::release $GITHUB_REF_NAME is already published; refusing to replace assets"
-              exit 1
-            fi
-          else
-            gh release create "$GITHUB_REF_NAME" --draft \
-              --title "$GITHUB_REF_NAME" \
-              --notes "Automated release $GITHUB_REF_NAME."
-          fi
-      - name: Build, sign, and upload DMG/ZIP
+          node --test test/release/*.test.cjs
+      - name: Build and sign DMG/ZIP without publishing
         env:
           SCVN_TABS: fork,git,init,settings
           CSC_LINK: ${{ secrets.CSC_LINK }}
@@ -93,18 +73,7 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           SCVN_SELFSIGN_P12: ${{ secrets.SCVN_SELFSIGN_P12 }}
           SCVN_SELFSIGN_PASSWORD: ${{ secrets.SCVN_SELFSIGN_PASSWORD }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bash .github/scripts/build-sign-publish.sh stable
+        run: bash scripts/ci/build-sign.sh stable
 
-      - name: Verify release asset allowlist and publish stable latest
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          assets="$(gh release view "$GITHUB_REF_NAME" --json assets --jq '.assets[].name' | sort)"
-          expected="$(printf '%s\n' "game-dev-forge-$(node -p "require('./package.json').version")-arm64.dmg" "game-dev-forge-$(node -p "require('./package.json').version")-arm64.zip" | sort)"
-          if [ "$assets" != "$expected" ]; then
-            echo "::error::release contains files outside the DMG/ZIP allowlist"
-            printf 'Expected:\n%s\nFound:\n%s\n' "$expected" "$assets"
-            exit 1
-          fi
-          gh release edit "$GITHUB_REF_NAME" --draft=false --latest
+      - name: Publish verified release
+        run: node scripts/ci/publish-release.cjs stable

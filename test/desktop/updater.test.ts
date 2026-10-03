@@ -10,6 +10,7 @@ import {
   extractBundle,
   selectRelease,
   UPDATE_BUNDLE,
+  UPDATE_REPO,
 } from "../../desktop/main/update-artifacts.js";
 import { Updates } from "../../desktop/main/updates.js";
 import type { ReleaseArtifact } from "../../desktop/main/update-artifacts.js";
@@ -49,7 +50,7 @@ function release(
         size: o.size ?? 25,
         browser_download_url:
           o.url ??
-          `https://github.com/SCVN-Zee/game-dev-forge/releases/download/v${v}/${n}`,
+          `https://github.com/${UPDATE_REPO}/releases/download/v${v}/${n}`,
       },
     ],
   };
